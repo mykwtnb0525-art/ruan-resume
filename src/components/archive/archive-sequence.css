@@ -1,0 +1,1009 @@
+.archive-sequence {
+  --archive-progress: 0;
+  --travel-progress: 0;
+  --arrival-progress: 0;
+  --boot-progress: 0;
+  --dispense-progress: 0;
+  --reveal-progress: 0;
+  position: relative;
+  z-index: 3;
+  color: #f2e3d4;
+  background: #08090b;
+}
+
+.archive-sequence__stage {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 720px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 52%, rgba(74, 16, 24, 0.34), transparent 35%),
+    linear-gradient(180deg, #111216, #08090b 70%);
+}
+
+.archive-canvas-shell {
+  position: absolute;
+  z-index: -4;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.archive-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
+}
+
+.archive-sequence__atmosphere {
+  position: absolute;
+  z-index: -3;
+  inset: -5%;
+  pointer-events: none;
+  opacity: calc(
+    0.03 + var(--travel-progress) * 0.68 - var(--arrival-progress) * 0.52
+  );
+  background-size: cover;
+  background-position: center;
+  filter: sepia(0.12) saturate(0.78) contrast(1.08) brightness(0.74);
+  mix-blend-mode: screen;
+  transform:
+    scale(calc(0.96 + var(--travel-progress) * 0.18))
+    translateY(calc(var(--travel-progress) * -1.2%));
+  transform-origin: 50% 48%;
+  transition: opacity 0.08s linear;
+}
+
+.archive-sequence__atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 47%, transparent 0 20%, rgba(8, 9, 11, 0.26) 62%),
+    linear-gradient(180deg, rgba(232, 213, 196, 0.04), rgba(8, 9, 11, 0.58));
+}
+
+.archive-canvas-fallback {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(74, 16, 24, 0.3), transparent 22%),
+    #08090b;
+}
+
+.archive-canvas-fallback__tunnel {
+  position: absolute;
+  inset: -34%;
+  background:
+    repeating-radial-gradient(
+      ellipse at center,
+      transparent 0 28px,
+      rgba(126, 119, 113, 0.18) 29px 31px
+    ),
+    conic-gradient(
+      from 45deg at center,
+      transparent,
+      rgba(126, 119, 113, 0.14),
+      transparent 24%,
+      rgba(159, 30, 45, 0.12),
+      transparent 52%,
+      rgba(126, 119, 113, 0.14),
+      transparent
+    );
+  transform: scale(calc(0.5 + var(--travel-progress) * 0.62));
+}
+
+.archive-canvas-fallback__machine {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 190px;
+  height: 260px;
+  border: 8px solid #bcae99;
+  border-radius: 22px 22px 8px 8px;
+  background: #17372f;
+  box-shadow: 0 0 0 1px #332e2a, 0 30px 80px #000;
+  transform:
+    translate(-50%, -50%)
+    scale(calc(0.18 + var(--travel-progress) * 0.82));
+}
+
+.archive-canvas-fallback__machine::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -128px;
+  width: 190px;
+  height: 150px;
+  border: 7px solid rgba(188, 174, 153, 0.8);
+  border-radius: 50% 50% 18% 18%;
+  background:
+    radial-gradient(circle at 35% 60%, #782332 0 12px, transparent 13px),
+    radial-gradient(circle at 62% 43%, #a7968d 0 13px, transparent 14px),
+    rgba(38, 61, 57, 0.42);
+  transform: translateX(-50%);
+}
+
+.archive-canvas-fallback__machine i {
+  position: absolute;
+  right: 23px;
+  top: 72px;
+  width: 58px;
+  height: 58px;
+  border: 9px solid #332e2a;
+  border-radius: 50%;
+  transform: rotate(calc(var(--boot-progress) * 520deg));
+}
+
+.archive-canvas-fallback__machine b {
+  position: absolute;
+  left: 25px;
+  bottom: 26px;
+  width: 88px;
+  height: 34px;
+  border: 5px solid #332e2a;
+  background: #08090b;
+}
+
+.archive-sequence__paper,
+.archive-sequence__grain,
+.archive-sequence__scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.archive-sequence__paper {
+  z-index: -2;
+  opacity: calc(0.96 - var(--travel-progress) * 0.86);
+  background-color: #e8d5c4;
+  background-image:
+    radial-gradient(circle at 72% 62%, rgba(159, 30, 45, 0.16), transparent 31%),
+    linear-gradient(90deg, rgba(232, 213, 196, 0.92), rgba(232, 213, 196, 0.26)),
+    url("/ruan-resume/assets/archive-paper-bg.png");
+  background-size: auto, auto, cover;
+  background-position: center;
+  mix-blend-mode: normal;
+  transition: opacity 0.08s linear;
+}
+
+.archive-sequence__paper::after {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  opacity: calc(0.26 - var(--travel-progress) * 0.2);
+  background:
+    radial-gradient(ellipse at center, transparent 28%, rgba(73, 50, 39, 0.18) 78%, rgba(31, 22, 19, 0.42)),
+    radial-gradient(circle at 18% 72%, rgba(129, 88, 62, 0.14), transparent 24%);
+  filter: blur(7px);
+}
+
+.archive-sequence__grain {
+  z-index: 12;
+  opacity: 0.075;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.64'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+
+.archive-sequence__scanlines {
+  z-index: 11;
+  opacity: calc(0.025 + var(--boot-progress) * 0.045);
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0 3px,
+    rgba(0, 215, 232, 0.22) 3px 4px
+  );
+  mix-blend-mode: screen;
+}
+
+.archive-sequence__entrance {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  min-height: 720px;
+  display: grid;
+  grid-template-columns: minmax(430px, 0.8fr) minmax(620px, 1.2fr);
+  align-items: center;
+  color: #211d1b;
+  opacity: calc(1 - var(--travel-progress) * 1.38);
+  transform: scale(calc(1 + var(--travel-progress) * 0.07));
+  transform-origin: 48% 50%;
+  pointer-events: none;
+}
+
+.archive-sequence__copy {
+  padding: 104px 0 128px;
+  transform: translateX(calc(var(--travel-progress) * -8vw));
+}
+
+.archive-sequence__code {
+  margin: 0;
+  color: #3e6e69;
+  font: 0.72rem/1.95 "Courier New", Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-shadow: 1px 0 rgba(197, 55, 70, 0.34);
+}
+
+.archive-sequence__copy .eyebrow {
+  margin: 56px 0 18px;
+  color: #9f1e2d;
+}
+
+.archive-sequence__copy h2 {
+  margin: 0;
+  font-family: Arial Black, Impact, sans-serif;
+  font-size: clamp(4.8rem, 8.7vw, 9.5rem);
+  letter-spacing: calc(-0.09em + var(--travel-progress) * -0.025em);
+  line-height: 0.78;
+}
+
+.archive-sequence__copy h2 span {
+  display: block;
+  will-change: transform;
+}
+
+.archive-sequence__copy h2 span:first-child {
+  transform: translateX(calc(var(--travel-progress) * -3.2vw))
+    scale(calc(1 + var(--travel-progress) * 0.09));
+}
+
+.archive-sequence__copy h2 span:last-child {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(67, 48, 38, 0.72);
+  transform: translateX(calc(var(--travel-progress) * 2.2vw))
+    scale(calc(1 + var(--travel-progress) * 0.045));
+  transform-origin: left center;
+}
+
+.archive-sequence__lead {
+  margin: 40px 0 0;
+  color: #65544c;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: clamp(0.95rem, 1.1vw, 1.15rem);
+  line-height: 1.85;
+}
+
+.archive-sequence__continue {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 32px;
+  margin-top: 48px;
+  padding: 15px 18px 13px;
+  border: 1px solid rgba(67, 48, 38, 0.36);
+  color: #2f2723;
+  background: rgba(201, 166, 160, 0.78);
+  box-shadow: 7px 8px 0 rgba(82, 57, 42, 0.14);
+  font: 0.62rem/1 "Courier New", monospace;
+  letter-spacing: 0.17em;
+  pointer-events: auto;
+  transform: rotate(-1deg);
+}
+
+.archive-sequence__continue svg {
+  width: 16px;
+  height: 16px;
+}
+
+.archive-sequence__object {
+  position: absolute;
+  right: -7vw;
+  bottom: -1%;
+  width: min(62vw, 1040px);
+  margin: 0;
+  pointer-events: none;
+  transform:
+    translate(
+      calc(var(--travel-progress) * 18vw),
+      calc(var(--travel-progress) * 8vh)
+    )
+    scale(calc(1 + var(--travel-progress) * 0.08));
+}
+
+.archive-sequence__object img {
+  width: 100%;
+  filter:
+    saturate(1.12)
+    contrast(1.04)
+    drop-shadow(0 36px 70px rgba(0, 0, 0, 0.72));
+}
+
+.archive-sequence__object figcaption {
+  position: absolute;
+  right: 8vw;
+  bottom: 27%;
+  display: grid;
+  gap: 8px;
+  color: rgba(247, 243, 238, 0.72);
+  font: 0.58rem/1 "Courier New", monospace;
+  letter-spacing: 0.16em;
+}
+
+.archive-sequence__object figcaption span {
+  color: #f7f3ee;
+}
+
+.archive-hud {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  pointer-events: none;
+  font-family: "Courier New", Consolas, monospace;
+  letter-spacing: 0.13em;
+}
+
+.archive-hud__status {
+  position: absolute;
+  top: 30px;
+  right: 3vw;
+  left: 3vw;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  color: rgba(59, 47, 42, 0.68);
+  font-size: 0.56rem;
+}
+
+.archive-sequence:not([data-phase="IDLE"]) .archive-hud__status {
+  color: rgba(226, 213, 197, 0.64);
+}
+
+.archive-hud__target {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 76px;
+  height: 76px;
+  border: 1px solid rgba(186, 114, 255, 0.42);
+  border-radius: 50%;
+  transform: translate(-50%, -50%)
+    scale(calc(0.8 + var(--boot-progress) * 0.2));
+  opacity: calc(0.56 + var(--boot-progress) * 0.42);
+}
+
+.archive-hud__target::before,
+.archive-hud__target::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: rgba(0, 215, 232, 0.52);
+  transform: translate(-50%, -50%);
+}
+
+.archive-hud__target::before {
+  width: 136px;
+  height: 1px;
+}
+
+.archive-hud__target::after {
+  width: 1px;
+  height: 136px;
+}
+
+.archive-hud__target-ring {
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgba(159, 30, 45, 0.72);
+  border-radius: 50%;
+  animation: archive-target-spin 7s linear infinite;
+}
+
+.archive-hud__target-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #f2e3d4;
+  border-radius: 50%;
+  background: #9f1e2d;
+  box-shadow:
+    0 0 0 6px rgba(159, 30, 45, 0.1),
+    0 0 18px rgba(186, 114, 255, 0.45);
+  transform: translate(-50%, -50%);
+}
+
+.archive-hud__target small {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: calc(50% + 13px);
+  width: max-content;
+  padding: 4px 7px;
+  color: #f2e3d4;
+  background: rgba(74, 16, 24, 0.72);
+  font-size: 0.43rem;
+}
+
+.archive-hud__phase {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: rgba(242, 227, 212, 0.6);
+  font-size: 0.49rem;
+  transform: translateX(-50%);
+}
+
+.archive-hud__phase strong {
+  color: rgba(242, 227, 212, 0.82);
+  font-weight: 400;
+}
+
+.archive-hud__sound {
+  position: absolute;
+  z-index: 2;
+  right: 3vw;
+  bottom: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  color: rgba(242, 227, 212, 0.66);
+  background: none;
+  font: inherit;
+  font-size: 0.46rem;
+  pointer-events: auto;
+}
+
+.archive-hud__sound svg {
+  width: 17px;
+  height: 17px;
+}
+
+@keyframes archive-target-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.archive-sequence__arrival-copy {
+  position: absolute;
+  z-index: 6;
+  left: 3vw;
+  bottom: 17vh;
+  max-width: 310px;
+  margin: 0;
+  color: rgba(242, 227, 212, 0.78);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: clamp(1.05rem, 1.5vw, 1.55rem);
+  line-height: 1.55;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+  pointer-events: none;
+}
+
+.archive-sequence__arrival-copy span {
+  display: block;
+  margin-top: 16px;
+  color: rgba(0, 215, 232, 0.58);
+  font: 0.5rem/1.5 "Courier New", monospace;
+  letter-spacing: 0.12em;
+}
+
+.archive-sequence[data-phase="TARGET_LOCK"] .archive-sequence__arrival-copy {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.archive-sequence__machine-hotspot {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  top: 49%;
+  width: min(30vw, 430px);
+  height: min(62vh, 620px);
+  transform: translate(-50%, -50%);
+}
+
+.archive-sequence__progress {
+  position: absolute;
+  z-index: 8;
+  left: 3vw;
+  right: 28vw;
+  bottom: 34px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 22px;
+  color: rgba(63, 51, 45, 0.62);
+  font: 0.5rem/1 "Courier New", monospace;
+  letter-spacing: 0.15em;
+  pointer-events: none;
+  opacity: calc(1 - var(--travel-progress) * 1.8);
+}
+
+.archive-sequence__progress > span {
+  height: 1px;
+  background: rgba(67, 48, 38, 0.18);
+}
+
+.archive-sequence__progress > span::after {
+  content: "";
+  display: block;
+  width: calc(var(--archive-progress) * 100%);
+  height: 100%;
+  background: #9f1e2d;
+}
+
+.archive-sequence__skip {
+  position: absolute;
+  z-index: 18;
+  left: 3vw;
+  bottom: 24px;
+  border: 0;
+  color: rgba(242, 227, 212, 0.5);
+  background: none;
+  font: 0.46rem/1 "Courier New", monospace;
+  letter-spacing: 0.13em;
+  opacity: calc(var(--travel-progress) * 1.4);
+}
+
+.reduced-archive {
+  position: absolute;
+  z-index: 20;
+  right: 5vw;
+  bottom: 9vh;
+  width: min(310px, 76vw);
+  padding: 16px;
+  border: 1px solid rgba(242, 227, 212, 0.28);
+  color: rgba(242, 227, 212, 0.72);
+  background: rgba(8, 9, 11, 0.78);
+  font: 0.67rem/1.6 "Courier New", monospace;
+}
+
+.reduced-archive button {
+  margin-top: 10px;
+  padding: 10px 13px;
+  border: 1px solid rgba(0, 215, 232, 0.5);
+  color: #f2e3d4;
+  background: rgba(74, 16, 24, 0.72);
+  font: inherit;
+  letter-spacing: 0.12em;
+}
+
+.internship-reveal {
+  position: absolute;
+  z-index: 15;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  padding: clamp(72px, 7vw, 118px) max(3vw, calc((100vw - 1700px) / 2));
+  color: #211d1b;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(40px) scale(0.98);
+  pointer-events: none;
+  transition:
+    opacity 0.58s ease,
+    transform 0.72s cubic-bezier(0.22, 0.8, 0.2, 1),
+    visibility 0.58s;
+}
+
+.internship-reveal::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  opacity: 0.94;
+  background:
+    linear-gradient(90deg, rgba(232, 213, 196, 0.96), rgba(201, 166, 160, 0.9)),
+    url("/ruan-resume/assets/archive-paper-bg.png");
+  background-size: auto, cover;
+  box-shadow: inset 0 0 110px rgba(49, 31, 24, 0.28);
+}
+
+.internship-reveal.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.internship-reveal__heading {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 1.5% 22px;
+  color: #7b292e;
+  font: 0.56rem/1 "Courier New", monospace;
+  letter-spacing: 0.15em;
+}
+
+.internship-reveal__cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr);
+  grid-template-rows: 1.2fr 0.8fr;
+  gap: 18px;
+  max-height: 72vh;
+}
+
+.internship-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 2.5vw, 46px);
+  border: 1px solid rgba(65, 47, 38, 0.42);
+  background:
+    linear-gradient(rgba(242, 227, 212, 0.78), rgba(232, 213, 196, 0.82)),
+    url("/ruan-resume/assets/archive-paper-bg.png");
+  background-size: auto, 860px auto;
+  box-shadow: 14px 18px 0 rgba(58, 39, 30, 0.14);
+}
+
+.internship-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 18px,
+    #00d7e8 18px 19px
+  );
+  pointer-events: none;
+}
+
+.internship-card--worksite {
+  grid-row: 1 / 3;
+  align-self: stretch;
+  transform: rotate(-1.1deg);
+}
+
+.internship-card--process {
+  transform: rotate(0.8deg);
+}
+
+.internship-card--learned {
+  transform: rotate(-0.5deg);
+}
+
+.internship-card__index {
+  display: block;
+  margin-bottom: clamp(22px, 3.5vw, 58px);
+  color: #9f1e2d;
+  font: 0.55rem/1 "Courier New", monospace;
+  letter-spacing: 0.16em;
+}
+
+.internship-card__company-en {
+  color: #77665d;
+  font: 0.62rem/1.5 "Courier New", monospace;
+  letter-spacing: 0.08em;
+}
+
+.internship-card h2 {
+  max-width: 680px;
+  margin: 12px 0 22px;
+  font-family: Arial Black, "Microsoft YaHei", sans-serif;
+  font-size: clamp(2.3rem, 4vw, 5.2rem);
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+}
+
+.internship-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 30px;
+}
+
+.internship-card__meta span,
+.internship-card__keywords span {
+  padding: 7px 9px 6px;
+  border: 1px solid rgba(63, 49, 42, 0.35);
+  font: 0.5rem/1 "Courier New", monospace;
+  letter-spacing: 0.08em;
+}
+
+.internship-card__intro {
+  max-width: 620px;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: clamp(0.94rem, 1.1vw, 1.14rem);
+  line-height: 1.9;
+}
+
+.internship-card__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.internship-card__keywords b {
+  margin-right: 7px;
+  color: #9f1e2d;
+}
+
+.internship-card__tasks {
+  display: grid;
+  gap: 8px;
+}
+
+.internship-card__tasks p {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 10px;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(52, 42, 37, 0.28);
+  font-size: clamp(0.68rem, 0.76vw, 0.8rem);
+  line-height: 1.45;
+}
+
+.internship-card__tasks span {
+  color: #39716d;
+  font: 0.48rem/1.4 "Courier New", monospace;
+}
+
+.internship-card--learned p {
+  margin: 0;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: clamp(0.86rem, 1vw, 1.02rem);
+  line-height: 1.75;
+}
+
+.internship-card__stamp {
+  position: absolute;
+  right: 24px;
+  bottom: 18px;
+  padding: 8px 10px;
+  border: 2px solid rgba(159, 30, 45, 0.5);
+  color: rgba(159, 30, 45, 0.7);
+  font: 0.52rem/1 "Courier New", monospace;
+  letter-spacing: 0.12em;
+  transform: rotate(-3deg);
+}
+
+.internship-reveal__continue {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 1.5% 0 0;
+  color: #211d1b;
+  font: 0.58rem/1 "Courier New", monospace;
+  letter-spacing: 0.14em;
+}
+
+.internship-reveal__continue svg {
+  width: 18px;
+  height: 18px;
+}
+
+.internship-reveal__close {
+  position: absolute;
+  right: 2.5vw;
+  top: 24px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(42, 33, 29, 0.42);
+  border-radius: 50%;
+  color: #211d1b;
+  background: rgba(232, 213, 196, 0.72);
+}
+
+.internship-reveal__close svg {
+  width: 17px;
+  height: 17px;
+}
+
+.archive-sequence__reopen {
+  position: absolute;
+  z-index: 19;
+  left: 50%;
+  bottom: 8vh;
+  padding: 11px 14px;
+  border: 1px solid rgba(0, 215, 232, 0.46);
+  color: #f2e3d4;
+  background: rgba(74, 16, 24, 0.8);
+  font: 0.55rem/1 "Courier New", monospace;
+  letter-spacing: 0.14em;
+  transform: translateX(-50%);
+}
+
+.archive-sequence[data-phase="UNSEALED"] .archive-hud,
+.archive-sequence[data-phase="UNSEALED"] .archive-sequence__arrival-copy,
+.archive-sequence[data-phase="UNSEALED"] .archive-sequence__machine-hotspot {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 1023px) {
+  .archive-sequence__entrance {
+    grid-template-columns: minmax(360px, 0.9fr) minmax(460px, 1.1fr);
+  }
+
+  .archive-sequence__copy h2 {
+    font-size: clamp(4.5rem, 10.5vw, 7.4rem);
+  }
+
+  .archive-sequence__object {
+    right: -16%;
+    width: 72vw;
+  }
+
+  .internship-reveal__cards {
+    grid-template-columns: minmax(0, 1.1fr) minmax(310px, 0.9fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .archive-sequence {
+    min-height: 180svh;
+  }
+
+  .archive-sequence__stage {
+    position: sticky;
+    top: 0;
+    min-height: 100svh;
+  }
+
+  .archive-sequence__entrance {
+    min-height: 100svh;
+    display: block;
+    width: calc(100% - 36px);
+  }
+
+  .archive-sequence__copy {
+    padding: 86px 0 0;
+  }
+
+  .archive-sequence__code {
+    font-size: 0.55rem;
+  }
+
+  .archive-sequence__copy .eyebrow {
+    margin-top: 28px;
+  }
+
+  .archive-sequence__copy h2 {
+    font-size: clamp(3.8rem, 18vw, 5.8rem);
+  }
+
+  .archive-sequence__lead {
+    margin-top: 25px;
+    font-size: 0.88rem;
+  }
+
+  .archive-sequence__continue {
+    margin-top: 25px;
+  }
+
+  .archive-sequence__object {
+    right: -30%;
+    bottom: 0;
+    width: 145%;
+  }
+
+  .archive-sequence__object figcaption {
+    right: 34%;
+    bottom: 8%;
+  }
+
+  .archive-hud__status {
+    top: 18px;
+    left: 18px;
+    right: 18px;
+    font-size: 0.43rem;
+  }
+
+  .archive-hud__status span:nth-child(2) {
+    display: none;
+  }
+
+  .archive-hud__target {
+    width: 58px;
+    height: 58px;
+  }
+
+  .archive-hud__target::before {
+    width: 92px;
+  }
+
+  .archive-hud__target::after {
+    height: 92px;
+  }
+
+  .archive-hud__target small,
+  .archive-hud__phase strong,
+  .archive-sequence__progress,
+  .archive-sequence__arrival-copy {
+    display: none;
+  }
+
+  .archive-hud__sound {
+    right: 18px;
+    bottom: 15px;
+  }
+
+  .archive-sequence__skip {
+    left: 18px;
+    bottom: 17px;
+    opacity: 0.72;
+  }
+
+  .reduced-archive {
+    right: 18px;
+    bottom: 58px;
+  }
+
+  .internship-reveal {
+    position: absolute;
+    overflow-y: auto;
+    align-content: start;
+    padding: 70px 18px 40px;
+  }
+
+  .internship-reveal__heading {
+    gap: 15px;
+    font-size: 0.44rem;
+  }
+
+  .internship-reveal__cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    max-height: none;
+  }
+
+  .internship-card,
+  .internship-card--worksite,
+  .internship-card--process,
+  .internship-card--learned {
+    grid-row: auto;
+    transform: none;
+  }
+
+  .internship-card h2 {
+    font-size: 2.25rem;
+  }
+
+  .internship-card__index {
+    margin-bottom: 22px;
+  }
+
+  .internship-card__tasks p {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .internship-reveal__continue {
+    margin-right: 0;
+    padding-bottom: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archive-sequence {
+    min-height: 100svh;
+  }
+
+  .archive-sequence__stage {
+    position: relative;
+  }
+
+  .archive-hud__target-ring {
+    animation: none;
+  }
+
+  .archive-sequence__entrance,
+  .archive-sequence__copy,
+  .archive-sequence__copy h2 span,
+  .archive-sequence__object {
+    transform: none;
+  }
+
+  .internship-reveal {
+    transition: opacity 0.2s linear;
+  }
+}

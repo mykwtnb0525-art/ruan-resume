@@ -15,6 +15,7 @@ const frag = `
 precision highp float;
 uniform vec3 iResolution;
 uniform float iTime;
+uniform float uTravel;
 uniform vec2 uSkew;
 uniform float uTilt;
 uniform float uYaw;
@@ -49,7 +50,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
     vec2 p = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
 
-    vec3 ro = vec3(0.0);
+    vec3 ro = vec3(0.0, 0.0, uTravel);
     vec3 rd = normalize(vec3(p, 2.0));
 
     float cR = cos(uTilt), sR = sin(uTilt);
@@ -77,7 +78,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         float t = num / den;
         vec3 h = ro + rd * t;
 
-        float depthBoost = smoothstep(0.0, 3.0, h.z);
+        float depthBoost = smoothstep(0.0, 3.0, h.z - ro.z);
         h.xy += skew * 0.15 * depthBoost;
 
     bool use = t > 0.0 && t < minT;
@@ -210,7 +211,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
       phase = (t2 < dur) ? (t2 / dur) : (1.0 - (t2 - dur) / dur);
     }
     float scanZ = phase * scanZMax;
-    float dz = abs(hit.z - scanZ);
+    float localHitZ = hit.z - ro.z;
+    float dz = abs(localHitZ - scanZ);
     float lineBand = exp(-0.5 * (dz * dz) / (sigma * sigma));
     float taper = clamp(uPhaseTaper, 0.0, 0.49);
     float headW = taper;
@@ -233,7 +235,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         phaseI = (phaseI < 0.5) ? (phaseI * 2.0) : (1.0 - (phaseI - 0.5) * 2.0);
       }
       float scanZI = phaseI * scanZMax;
-      float dzI = abs(hit.z - scanZI);
+      float dzI = abs(localHitZ - scanZI);
       float lineBandI = exp(-0.5 * (dzI * dzI) / (sigma * sigma));
       float headFadeI = smoother01(0.0, headW, phaseI);
       float tailFadeI = 1.0 - smoother01(1.0 - tailW, 1.0, phaseI);
@@ -295,6 +297,9 @@ export const GridScan = ({
   enableGyro = false,
   scanOnClick = false,
   snapBackDelay = 250,
+  travelSpeed = 0,
+  travelBoost = 0.8,
+  scrollInfluence = 0.003,
   className,
   style
 }) => {
@@ -322,6 +327,11 @@ export const GridScan = ({
   const tiltVel = useRef(0);
   const yawCurrent = useRef(0);
   const yawVel = useRef(0);
+  const travelOffset = useRef(0);
+  const travelCurrentSpeed = useRef(0);
+  const travelImpulse = useRef(0);
+  const travelPressed = useRef(false);
+  const travelFrame = useRef(0);
 
   const MAX_SCANS = 8;
   const scanStartsRef = useRef([]);
@@ -359,7 +369,19 @@ export const GridScan = ({
     const el = containerRef.current;
     if (!el) return;
     let leaveTimer = null;
+    const inside = e => {
+      const rect = el.getBoundingClientRect();
+      return (
+        rect.bottom > 0 &&
+        rect.top < window.innerHeight &&
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      );
+    };
     const onMove = e => {
+      if (!inside(e)) return;
       if (uiFaceActive) return;
       if (leaveTimer) {
         clearTimeout(leaveTimer);
@@ -392,6 +414,22 @@ export const GridScan = ({
         leaveTimer = null;
       }
     };
+    const onWheel = e => {
+      const rect = el.getBoundingClientRect();
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) return;
+      travelImpulse.current = Math.min(
+        Math.max(0.1, travelBoost * 1.35),
+        travelImpulse.current + Math.abs(e.deltaY) * Math.max(0, scrollInfluence)
+      );
+    };
+    const onPointerDown = e => {
+      if (!inside(e)) return;
+      travelPressed.current = true;
+      el.dataset.travelling = 'true';
+    };
+    const onPointerUp = () => {
+      travelPressed.current = false;
+    };
     const onLeave = () => {
       if (uiFaceActive) return;
       if (leaveTimer) clearTimeout(leaveTimer);
@@ -404,18 +442,33 @@ export const GridScan = ({
         Math.max(0, snapBackDelay || 0)
       );
     };
-    el.addEventListener('mousemove', onMove);
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('wheel', onWheel, { passive: true });
+    window.addEventListener('pointerdown', onPointerDown, { passive: true });
+    window.addEventListener('pointerup', onPointerUp, { passive: true });
+    window.addEventListener('pointercancel', onPointerUp, { passive: true });
     el.addEventListener('mouseenter', onEnter);
     if (scanOnClick) el.addEventListener('click', onClick);
     el.addEventListener('mouseleave', onLeave);
     return () => {
-      el.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
       el.removeEventListener('mouseenter', onEnter);
       el.removeEventListener('mouseleave', onLeave);
       if (scanOnClick) el.removeEventListener('click', onClick);
       if (leaveTimer) clearTimeout(leaveTimer);
     };
-  }, [uiFaceActive, snapBackDelay, scanOnClick, enableGyro]);
+  }, [
+    uiFaceActive,
+    snapBackDelay,
+    scanOnClick,
+    enableGyro,
+    scrollInfluence,
+    travelBoost
+  ]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -436,6 +489,7 @@ export const GridScan = ({
         value: new THREE.Vector3(container.clientWidth, container.clientHeight, renderer.getPixelRatio())
       },
       iTime: { value: 0 },
+      uTravel: { value: 0 },
       uSkew: { value: new THREE.Vector2(0, 0) },
       uTilt: { value: 0 },
       uYaw: { value: 0 },
@@ -508,6 +562,7 @@ export const GridScan = ({
     window.addEventListener('resize', onResize);
 
     let last = performance.now();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const tick = () => {
       const now = performance.now();
       const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
@@ -543,6 +598,23 @@ export const GridScan = ({
       material.uniforms.uSkew.value.set(skew.x, skew.y);
       material.uniforms.uTilt.value = tiltCurrent.current * tiltScale;
       material.uniforms.uYaw.value = THREE.MathUtils.clamp(yawCurrent.current * yawScale, -0.6, 0.6);
+
+      const idleSpeed = reducedMotion ? 0 : Math.max(0, travelSpeed);
+      const pressedSpeed = travelPressed.current && !reducedMotion ? Math.max(0, travelBoost) : 0;
+      travelImpulse.current *= Math.exp(-dt * 3.8);
+      const targetTravelSpeed = idleSpeed + pressedSpeed + travelImpulse.current;
+      travelCurrentSpeed.current +=
+        (targetTravelSpeed - travelCurrentSpeed.current) * (1 - Math.exp(-dt * 5.4));
+      travelOffset.current = (travelOffset.current + travelCurrentSpeed.current * dt) % 512;
+      material.uniforms.uTravel.value = travelOffset.current;
+
+      travelFrame.current += 1;
+      if (travelFrame.current % 10 === 0) {
+        container.dataset.travel = travelOffset.current.toFixed(3);
+        container.dataset.speed = travelCurrentSpeed.current.toFixed(3);
+        container.dataset.travelling =
+          travelCurrentSpeed.current > idleSpeed + 0.08 ? 'true' : 'false';
+      }
 
       material.uniforms.iTime.value = now / 1000;
       renderer.clear(true, true, true);
@@ -590,6 +662,8 @@ export const GridScan = ({
     bloomThreshold,
     bloomSmoothing,
     chromaticAberration,
+    travelSpeed,
+    travelBoost,
     smoothTime,
     maxSpeed,
     skewScale,

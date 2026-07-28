@@ -1,4 +1,11 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Aperture,
   ArrowDown,
@@ -28,43 +35,11 @@ import { capabilities, profile, projects, tools } from "./data.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const LazyGridScan = lazy(() =>
-  import("./components/GridScan.jsx").then((module) => ({
-    default: module.GridScan,
+const LazyArchiveSequence = lazy(() =>
+  import("./components/archive/ArchiveSequence.jsx").then((module) => ({
+    default: module.ArchiveSequence,
   })),
 );
-
-function DeferredGridScan(props) {
-  const hostRef = useRef(null);
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    const host = hostRef.current;
-    if (!host) return undefined;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setActive(true);
-        observer.disconnect();
-      },
-      { rootMargin: "320px" },
-    );
-
-    observer.observe(host);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div className="gridscan-deferred" ref={hostRef}>
-      {active ? (
-        <Suspense fallback={null}>
-          <LazyGridScan {...props} />
-        </Suspense>
-      ) : null}
-    </div>
-  );
-}
 
 function LoadingScreen({ hidden }) {
   return (
@@ -100,12 +75,20 @@ function CustomCursor({ disabled = false }) {
     };
 
     const enter = (event) => {
-      const label = event.currentTarget.dataset.cursor || "";
+      const target = event.target.closest?.("[data-cursor]");
+      if (!target) return;
+      const previous = event.relatedTarget?.closest?.("[data-cursor]");
+      if (target === previous) return;
+      const label = target.dataset.cursor || "";
       ringRef.current?.classList.add("is-active");
       if (labelRef.current) labelRef.current.textContent = label;
     };
 
-    const leave = () => {
+    const leave = (event) => {
+      const target = event.target.closest?.("[data-cursor]");
+      if (!target) return;
+      const next = event.relatedTarget?.closest?.("[data-cursor]");
+      if (target === next) return;
       ringRef.current?.classList.remove("is-active");
       if (labelRef.current) labelRef.current.textContent = "";
     };
@@ -121,18 +104,14 @@ function CustomCursor({ disabled = false }) {
     };
 
     document.addEventListener("mousemove", move);
-    document.querySelectorAll("[data-cursor]").forEach((element) => {
-      element.addEventListener("mouseenter", enter);
-      element.addEventListener("mouseleave", leave);
-    });
+    document.addEventListener("pointerover", enter);
+    document.addEventListener("pointerout", leave);
     frame = requestAnimationFrame(animate);
 
     return () => {
       document.removeEventListener("mousemove", move);
-      document.querySelectorAll("[data-cursor]").forEach((element) => {
-        element.removeEventListener("mouseenter", enter);
-        element.removeEventListener("mouseleave", leave);
-      });
+      document.removeEventListener("pointerover", enter);
+      document.removeEventListener("pointerout", leave);
       cancelAnimationFrame(frame);
     };
   }, [disabled]);
@@ -172,17 +151,17 @@ function Hero({ onOpen }) {
       <Navigation />
       <img
         className="hero__collage"
-        src="/assets/hero-collage.png"
+        src="/ruan-resume/assets/hero-collage.png"
         alt="人物投影、旧游戏机、铁皮火箭、红风筝与玻璃弹珠组成的超现实拼贴"
       />
       <img
         className="hero__persona"
-        src="/assets/hero-kaicheng-approved.png"
+        src="/ruan-resume/assets/hero-kaicheng-approved.png"
         alt="阮凯城红黑复古质感个人肖像"
       />
       <img
         className="hero__objects-right"
-        src="/assets/hero-collage.png"
+        src="/ruan-resume/assets/hero-collage.png"
         alt=""
         aria-hidden="true"
       />
@@ -233,7 +212,7 @@ function Hero({ onOpen }) {
         data-cursor="PLAY"
         aria-label="打开精选影片《我们还有多少时间》"
       >
-        <img src="/assets/project-time.png" alt="" />
+        <img src="/ruan-resume/assets/project-time.png" alt="" />
         <span className="hero-reel__shade" />
         <span className="hero-reel__play">
           <Play weight="fill" />
@@ -245,85 +224,6 @@ function Hero({ onOpen }) {
       <a className="hero__scroll" href="#chapter" aria-label="继续向下浏览">
         <ArrowDown weight="light" />
       </a>
-    </section>
-  );
-}
-
-function ChapterPortal() {
-  return (
-    <section className="chapter-portal" id="chapter" aria-labelledby="chapter-title">
-      <div className="chapter-portal__grid" aria-hidden="true">
-        <DeferredGridScan
-          sensitivity={0.68}
-          lineThickness={1}
-          linesColor="#312832"
-          gridScale={0.115}
-          lineStyle="dashed"
-          lineJitter={0.14}
-          scanColor="#D12629"
-          scanOpacity={0.52}
-          scanDirection="pingpong"
-          scanGlow={0.7}
-          scanSoftness={2.5}
-          scanDuration={2.6}
-          scanDelay={1.2}
-          scanOnClick
-          enablePost
-          bloomIntensity={0.55}
-          bloomThreshold={0.08}
-          bloomSmoothing={0.7}
-          chromaticAberration={0.0015}
-          noiseIntensity={0.018}
-        />
-      </div>
-      <div className="chapter-portal__veil" aria-hidden="true" />
-
-      <div className="chapter-portal__hud" aria-hidden="true">
-        <span>KR_OS / BUILD 0708</span>
-        <span>MEMORY SLOT 01</span>
-        <span>STATUS: READY</span>
-      </div>
-
-      <div className="chapter-portal__content section-shell">
-        <div className="chapter-portal__copy">
-          <p className="chapter-portal__code">
-            &gt; MOUNT /VISUAL_ARCHIVE
-            <br />
-            &gt; LOAD MEMORY_FRAGMENTS... 100%
-            <br />
-            &gt; DIRECTOR_MODE: ACTIVE
-          </p>
-          <p className="eyebrow">CHAPTER 01 / INSERT COIN</p>
-          <h2 id="chapter-title">
-            ENTER
-            <span>THE ARCHIVE</span>
-          </h2>
-          <p className="chapter-portal__lead">
-            从这里开始，进入镜头、记忆与生成式影像共同构成的视觉档案。
-          </p>
-          <a href="#profile" className="chapter-portal__continue" data-cursor="ENTER">
-            <span>CONTINUE</span>
-            <ArrowDown weight="light" />
-          </a>
-        </div>
-
-        <figure className="chapter-portal__object">
-          <img
-            className="chapter-portal__car"
-            src="/assets/retro-car.png"
-            alt="红色丝绒上的复古绿色玩具汽车"
-          />
-          <figcaption>
-            PLAYER 01
-            <span>KAICHENG RUAN</span>
-          </figcaption>
-        </figure>
-      </div>
-
-      <div className="chapter-portal__progress" aria-hidden="true">
-        <span />
-        <b>PRESS / SCROLL TO CONTINUE</b>
-      </div>
     </section>
   );
 }
@@ -353,7 +253,7 @@ function Profile() {
         <div className="profile__grid">
           <div className="profile__visual reveal-image" data-tilt>
             <img
-              src="/assets/kaicheng-fullbody.png"
+              src="/ruan-resume/assets/kaicheng-fullbody.png"
               alt="阮凯城红色背景全身个人形象照"
             />
             <span className="profile__frame-label">PORTRAIT / FILE 0708</span>
@@ -628,7 +528,7 @@ function Capabilities() {
 function Contact() {
   return (
     <section className="contact" id="contact">
-      <img src="/assets/project-gala.png" alt="" className="contact__image" />
+      <img src="/ruan-resume/assets/project-gala.png" alt="" className="contact__image" />
       <div className="contact__veil" />
       <div className="contact__content section-shell">
         <MuseumMark
@@ -908,36 +808,6 @@ export function App() {
         );
       });
 
-      gsap.fromTo(
-        ".chapter-portal__car",
-        { xPercent: 12, yPercent: 8, rotate: 1.5 },
-        {
-          xPercent: -4,
-          yPercent: -5,
-          rotate: -1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: ".chapter-portal",
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          },
-        },
-      );
-
-      gsap.from(".chapter-portal__copy > *", {
-        opacity: 0,
-        x: -45,
-        stagger: 0.1,
-        duration: 0.75,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: ".chapter-portal__copy",
-          start: "top 76%",
-          once: true,
-        },
-      });
-
       gsap.utils.toArray(".project-card").forEach((card, index) => {
         gsap.from(card.querySelector(".project-card__meta"), {
           opacity: 0,
@@ -1012,7 +882,18 @@ export function App() {
       <CustomCursor disabled={qaMode} />
       <main>
         <Hero onOpen={setSelectedProject} />
-        <ChapterPortal />
+        <Suspense
+          fallback={
+            <section
+              className="archive-sequence-fallback"
+              aria-label="正在装载视觉档案入口"
+            >
+              <span>LOADING / ARCHIVE SEQUENCE</span>
+            </section>
+          }
+        >
+          <LazyArchiveSequence />
+        </Suspense>
         <ArchiveGuide />
         <Profile />
         <Projects onOpen={setSelectedProject} />

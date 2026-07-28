@@ -8,6 +8,12 @@ const { chromium } = require(
 const browser = await chromium.launch({
   executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
   headless: true,
+  args: [
+    "--enable-webgl",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist",
+    "--use-angle=swiftshader",
+  ],
 });
 
 const page = await browser.newPage({ viewport: { width: 1440, height: 1024 } });
@@ -18,7 +24,7 @@ page.on("console", (message) => {
 });
 page.on("pageerror", (error) => errors.push(`page: ${error.message}`));
 
-await page.goto("http://localhost:5173/?qa=1", {
+await page.goto("http://localhost:5173/ruan-resume/?qa=1", {
   waitUntil: "networkidle",
 });
 
@@ -26,12 +32,102 @@ await page.locator("#hero-title").waitFor({ state: "visible" });
 await page.screenshot({
   path: "implementation-hero-personal.png",
 });
-await page.locator("#chapter").scrollIntoViewIfNeeded();
+await page.evaluate(() => {
+  document.documentElement.style.scrollBehavior = "auto";
+  const chapter = document.querySelector("#chapter");
+  if (chapter) {
+    const top = window.scrollY + chapter.getBoundingClientRect().top;
+    window.scrollTo({ top, behavior: "instant" });
+  }
+  window.dispatchEvent(new Event("resize"));
+});
 await page.waitForTimeout(800);
-await page.locator("#chapter").screenshot({
+await page.waitForFunction(
+  () => document.querySelector("#chapter .archive-canvas"),
+);
+const archiveRange = await page.locator("#chapter").evaluate((element) => ({
+  start: Number(element.dataset.archiveStart || window.scrollY),
+  end: Number(element.dataset.archiveEnd || window.scrollY + innerHeight * 6.8),
+}));
+const setArchiveProgress = async (progress, screenshotPath) => {
+  await page.evaluate(
+    ({ start, end, progress: nextProgress }) => {
+      document.documentElement.style.scrollBehavior = "auto";
+      window.scrollTo(0, start + (end - start) * nextProgress);
+    },
+    { ...archiveRange, progress },
+  );
+  await page.waitForTimeout(650);
+  const state = await page.locator("#chapter").evaluate((element) => ({
+    phase: element.dataset.phase,
+    progress: Number(element.dataset.progress || 0),
+    webgl: element.querySelector(".archive-canvas")?.dataset.webgl,
+    model: element.querySelector(".archive-canvas")?.dataset.model,
+    cameraZ: Number(
+      element.querySelector(".archive-canvas")?.dataset.cameraZ || 0,
+    ),
+    machineBoot: Number(
+      element.querySelector(".archive-canvas")?.dataset.machineBoot || 0,
+    ),
+    capsule: Number(
+      element.querySelector(".archive-canvas")?.dataset.capsule || 0,
+    ),
+  }));
+  if (screenshotPath) {
+    await page.screenshot({ path: screenshotPath });
+  }
+  return state;
+};
+const archiveIdle = await setArchiveProgress(0.001);
+const chapterBox = await page.locator("#chapter").boundingBox();
+if (chapterBox) {
+  await page.mouse.move(
+    chapterBox.x + chapterBox.width * 0.62,
+    chapterBox.y + chapterBox.height * 0.48,
+  );
+}
+await page.screenshot({
   path: "implementation-chapter-gridscan.png",
 });
-await page.locator(".chapter-portal__continue").click();
+const crosshairFollowState = await page.locator(".acid-crosshair").evaluate((element) => ({
+  visible: element.classList.contains("is-visible"),
+  locked: element.classList.contains("is-locked"),
+  opacity: getComputedStyle(element).opacity,
+  reticleTransform: getComputedStyle(
+    element.querySelector(".acid-crosshair__reticle"),
+  ).transform,
+}));
+await page.locator(".archive-sequence__continue").hover({ force: true });
+await page.waitForTimeout(180);
+await page.screenshot({
+  path: "implementation-chapter-crosshair-lock.png",
+});
+const crosshairLockState = await page.locator(".acid-crosshair").evaluate((element) => ({
+  visible: element.classList.contains("is-visible"),
+  locked: element.classList.contains("is-locked"),
+  globalCursorHidden: document.body.classList.contains("crosshair-active"),
+}));
+const archiveTravel = await setArchiveProgress(
+  0.31,
+  "implementation-archive-travel.png",
+);
+const archiveArrival = await setArchiveProgress(
+  0.52,
+  "implementation-archive-arrival.png",
+);
+const archiveBoot = await setArchiveProgress(
+  0.7,
+  "implementation-archive-boot.png",
+);
+const archiveDispense = await setArchiveProgress(
+  0.85,
+  "implementation-archive-dispense.png",
+);
+const archiveReveal = await setArchiveProgress(
+  0.965,
+  "implementation-archive-internship.png",
+);
+await page.locator(".internship-reveal__continue").click();
 await page.waitForFunction(() => window.location.hash === "#profile");
 await page.waitForTimeout(350);
 await page.screenshot({
@@ -73,17 +169,31 @@ const phoneHref = await page
 const mobilePage = await browser.newPage({
   viewport: { width: 390, height: 844 },
 });
-await mobilePage.goto("http://localhost:5173/?qa=1", {
+await mobilePage.goto("http://localhost:5173/ruan-resume/?qa=1", {
   waitUntil: "networkidle",
 });
 await mobilePage.screenshot({
   path: "implementation-mobile-playwright.png",
 });
-await mobilePage.locator("#chapter").scrollIntoViewIfNeeded();
+await mobilePage.locator("#chapter").evaluate((element) => {
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo(0, window.scrollY + element.getBoundingClientRect().top);
+});
 await mobilePage.waitForTimeout(600);
-await mobilePage.locator("#chapter").screenshot({
+await mobilePage.screenshot({
   path: "implementation-mobile-chapter.png",
 });
+await mobilePage.locator("#chapter").evaluate((element) => {
+  const top = window.scrollY + element.getBoundingClientRect().top;
+  window.scrollTo(0, top + element.offsetHeight - window.innerHeight - 2);
+});
+await mobilePage.waitForTimeout(700);
+await mobilePage.screenshot({
+  path: "implementation-mobile-internship.png",
+});
+const mobileArchiveRevealed = await mobilePage
+  .locator(".internship-reveal")
+  .evaluate((element) => element.classList.contains("is-visible"));
 await mobilePage.locator("#profile").screenshot({
   path: "implementation-mobile-profile.png",
 });
@@ -99,7 +209,32 @@ const mobileLayout = await mobilePage.evaluate(() => ({
   contactRight: document
     .querySelector('.navigation a[href="#contact"]')
     ?.getBoundingClientRect().right,
+  crosshairDisplay: document.querySelector(".acid-crosshair")
+    ? getComputedStyle(document.querySelector(".acid-crosshair")).display
+    : "not-rendered",
 }));
+
+const reducedPage = await browser.newPage({
+  viewport: { width: 1280, height: 800 },
+});
+await reducedPage.emulateMedia({ reducedMotion: "reduce" });
+await reducedPage.goto("http://localhost:5173/ruan-resume/?qa=1", {
+  waitUntil: "networkidle",
+});
+await reducedPage.locator("#chapter").scrollIntoViewIfNeeded();
+await reducedPage.waitForTimeout(500);
+const reducedTravelBefore = Number(
+  (await reducedPage.locator(".archive-canvas").getAttribute("data-camera-z")) || 0,
+);
+await reducedPage.waitForTimeout(450);
+const reducedTravelAfter = Number(
+  (await reducedPage.locator(".archive-canvas").getAttribute("data-camera-z")) || 0,
+);
+await reducedPage.locator(".reduced-archive button").click();
+await reducedPage.waitForTimeout(260);
+const reducedRevealVisible = await reducedPage
+  .locator(".internship-reveal")
+  .evaluate((element) => element.classList.contains("is-visible"));
 
 const interactionPage = await browser.newPage({
   viewport: { width: 1440, height: 1024 },
@@ -110,7 +245,7 @@ interactionPage.on("console", (message) => {
 interactionPage.on("pageerror", (error) =>
   errors.push(`interaction page: ${error.message}`),
 );
-await interactionPage.goto("http://localhost:5173/", {
+await interactionPage.goto("http://localhost:5173/ruan-resume/", {
   waitUntil: "networkidle",
 });
 await interactionPage.waitForTimeout(1350);
@@ -180,6 +315,17 @@ const result = {
   navigationHash: await page.evaluate(() => window.location.hash),
   emailHref,
   phoneHref,
+  crosshairFollowState,
+  crosshairLockState,
+  archiveSequence: {
+    idle: archiveIdle,
+    travel: archiveTravel,
+    arrival: archiveArrival,
+    boot: archiveBoot,
+    dispense: archiveDispense,
+    reveal: archiveReveal,
+    cameraAdvanced: archiveTravel.cameraZ < archiveIdle.cameraZ,
+  },
   profileGuide,
   projectGuideCurrent,
   tiltState,
@@ -187,6 +333,13 @@ const result = {
   ticketTransform,
   rippleCount,
   mobileLayout,
+  mobileArchiveRevealed,
+  reducedMotionTravel: {
+    before: reducedTravelBefore,
+    after: reducedTravelAfter,
+    stationary: Math.abs(reducedTravelAfter - reducedTravelBefore) < 0.001,
+    revealVisible: reducedRevealVisible,
+  },
   consoleErrors: errors,
 };
 
