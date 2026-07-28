@@ -44,6 +44,14 @@ export function useArchiveProgress({
           progressRef.current = progress;
           section.dataset.progress = progress.toFixed(4);
 
+          const entrance = rangeProgress(
+            progress,
+            ...ARCHIVE_CONFIG.ranges.collage,
+          );
+          const collage = rangeProgress(
+            progress,
+            ...ARCHIVE_CONFIG.ranges.collage,
+          );
           const travel = rangeProgress(
             progress,
             ...ARCHIVE_CONFIG.ranges.travel,
@@ -63,6 +71,14 @@ export function useArchiveProgress({
           );
 
           section.style.setProperty("--archive-progress", progress.toFixed(4));
+          section.style.setProperty(
+            "--entrance-progress",
+            entrance.toFixed(4),
+          );
+          section.style.setProperty(
+            "--collage-progress",
+            collage.toFixed(4),
+          );
           section.style.setProperty("--travel-progress", travel.toFixed(4));
           section.style.setProperty("--arrival-progress", arrival.toFixed(4));
           section.style.setProperty("--boot-progress", boot.toFixed(4));

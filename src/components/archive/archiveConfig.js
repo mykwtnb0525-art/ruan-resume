@@ -4,7 +4,7 @@ function withBase(path) {
 
 export const ARCHIVE_CONFIG = {
   assets: {
-    model: withBase("models/archive-gashapon.glb"),
+    model: withBase("models/archive-gashapon-web.glb"),
     labels: withBase("textures/gashapon-labels.webp"),
     scratchedMetal: withBase("textures/scratched-metal.webp"),
     audio: {
@@ -16,21 +16,23 @@ export const ARCHIVE_CONFIG = {
     },
   },
   camera: {
-    idle: [0.35, 1.35, 18],
-    travelEnd: [4.9, 2.3, 9.4],
-    arrival: [4.8, 2.2, 7.8],
-    operation: [3.6, 1.8, 6.2],
-    target: [0, 1.55, 0],
+    idle: [0, 1.5, 30],
+    collage: [0.28, 1.58, 23],
+    travelEnd: [2.2, 1.9, 11.6],
+    arrival: [3.6, 1.8, 7.8],
+    operation: [3.4, 1.75, 7.2],
+    target: [0, 0.62, 0],
     fovStart: 46,
-    fovEnd: 40,
+    fovEnd: 41,
   },
   ranges: {
-    idle: [0, 0.12],
-    travel: [0.12, 0.43],
-    arrival: [0.43, 0.58],
-    boot: [0.58, 0.78],
-    dispense: [0.78, 0.9],
-    reveal: [0.9, 1],
+    idle: [0, 0.18],
+    collage: [0.18, 0.42],
+    travel: [0.42, 0.7],
+    arrival: [0.7, 0.86],
+    boot: [0.86, 0.95],
+    dispense: [0.91, 0.95],
+    reveal: [0.95, 1],
   },
   colors: {
     paper: "#e8d5c4",
@@ -46,20 +48,20 @@ export const ARCHIVE_CONFIG = {
     muted: "#7e7771",
   },
   machine: {
-    position: [0, -1.25, 0],
-    scale: 0.82,
+    position: [0, -2.1, 0],
+    scale: 0.68,
     capsuleCount: 24,
     modelMode: "gltf",
   },
 };
 
 export const ARCHIVE_PHASES = [
-  ["IDLE", 0, 0.12],
-  ["TRAVEL", 0.12, 0.43],
-  ["TARGET_LOCK", 0.43, 0.58],
-  ["BOOTING", 0.58, 0.78],
-  ["DISPENSING", 0.78, 0.9],
-  ["UNSEALED", 0.9, 1.01],
+  ["IDLE", 0, 0.18],
+  ["TRAVEL", 0.18, 0.7],
+  ["TARGET_LOCK", 0.7, 0.86],
+  ["BOOTING", 0.86, 0.91],
+  ["DISPENSING", 0.91, 0.95],
+  ["UNSEALED", 0.95, 1.01],
 ];
 
 export function rangeProgress(progress, start, end) {

@@ -8,6 +8,7 @@ import { createMachineLights } from "./machine/MachineLights.js";
 import { createMachineMaterials } from "./machine/machineConfig.js";
 import { createMechanicalDial } from "./machine/MechanicalDial.js";
 import { createOutputBay } from "./machine/OutputBay.js";
+import { createTextTexture } from "./threeUtils.js";
 
 export function createGashaponMachine(config) {
   const group = new THREE.Group();
@@ -93,6 +94,26 @@ export function bindGashaponGLTF(root, config) {
     object.castShadow = object.material?.name !== "MachineSmokedGlass";
     object.receiveShadow = object.material?.name !== "MachineSmokedGlass";
   });
+
+  const archiveLabel = group.getObjectByName("MachineArchiveLabel");
+  if (archiveLabel && typeof document !== "undefined") {
+    const previousMaterial = archiveLabel.material;
+    archiveLabel.material = new THREE.MeshBasicMaterial({
+      map: createTextTexture(
+        ["MEMORY ARCHIVE", "INSERT · SHARE · CONNECT", "KR / UNIT 01"],
+        {
+          width: 768,
+          height: 260,
+          background: "#30192d",
+          color: "#ead8b8",
+          accent: "#a6763d",
+        },
+      ),
+      transparent: true,
+      toneMapped: false,
+    });
+    previousMaterial?.dispose?.();
+  }
 
   const outputCapsule = group.getObjectByName("OutputCapsule");
   const capsule = {

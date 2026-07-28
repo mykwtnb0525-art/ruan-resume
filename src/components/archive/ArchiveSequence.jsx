@@ -22,7 +22,7 @@ export function ArchiveSequence() {
   const { reducedMotion, compact, tablet } = useReducedMotion();
   const staticMode = reducedMotion || compact;
   const [phase, setPhase] = useState(staticMode ? "TARGET_LOCK" : "IDLE");
-  const [displayProgress, setDisplayProgress] = useState(staticMode ? 0.56 : 0);
+  const [displayProgress, setDisplayProgress] = useState(staticMode ? 0.8 : 0);
   const [opened, setOpened] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [muted, setMuted] = useState(() => {
@@ -49,7 +49,7 @@ export function ArchiveSequence() {
 
   useEffect(() => {
     if (!staticMode) return undefined;
-    progressRef.current = opened ? 1 : 0.56;
+    progressRef.current = opened ? 1 : 0.8;
     const nextPhase = opened ? "UNSEALED" : "TARGET_LOCK";
     setPhase(nextPhase);
     setDisplayProgress(progressRef.current);
@@ -69,7 +69,7 @@ export function ArchiveSequence() {
       const rect = section.getBoundingClientRect();
       const distance = Math.max(1, rect.height - window.innerHeight);
       const local = Math.min(1, Math.max(0, -rect.top / distance));
-      const progress = 0.56 + local * 0.44;
+      const progress = 0.7 + local * 0.3;
       progressRef.current = progress;
       section.dataset.progress = progress.toFixed(4);
       setDisplayProgress(progress);
@@ -77,7 +77,7 @@ export function ArchiveSequence() {
       setPhase((current) => (current === nextPhase ? current : nextPhase));
       section.style.setProperty(
         "--reveal-progress",
-        progress >= 0.9 ? String((progress - 0.9) / 0.1) : "0",
+        progress >= 0.95 ? String((progress - 0.95) / 0.05) : "0",
       );
       if (progress >= 0.985) setOpened(true);
       frame = 0;
@@ -142,9 +142,43 @@ export function ArchiveSequence() {
           className="archive-sequence__atmosphere"
           aria-hidden="true"
           style={{
-            backgroundImage: `linear-gradient(90deg, rgba(8,9,11,.78) 0%, rgba(8,9,11,.14) 44%, rgba(8,9,11,.34) 100%), url("${import.meta.env.BASE_URL}assets/archive-dream-corridor.png")`,
+            backgroundImage: `linear-gradient(90deg, rgba(8,9,11,.88) 0%, rgba(44,25,24,.64) 46%, rgba(8,9,11,.8) 100%), url("${import.meta.env.BASE_URL}assets/archive-dream-corridor.png")`,
           }}
         />
+        <div className="archive-sequence__memory-fragments" aria-hidden="true">
+          <figure className="archive-memory archive-memory--portrait">
+            <img
+              src={`${import.meta.env.BASE_URL}assets/kaicheng-portrait.png`}
+              alt=""
+            />
+            <figcaption>MEMORY / 01</figcaption>
+          </figure>
+          <figure className="archive-memory archive-memory--mist">
+            <img
+              src={`${import.meta.env.BASE_URL}assets/project-mist.png`}
+              alt=""
+            />
+            <figcaption>FRAME / LOST</figcaption>
+          </figure>
+          <figure className="archive-memory archive-memory--time">
+            <img
+              src={`${import.meta.env.BASE_URL}assets/project-time.png`}
+              alt=""
+            />
+            <figcaption>TIME / REMAINS</figcaption>
+          </figure>
+          <figure className="archive-memory archive-memory--dayu">
+            <img
+              src={`${import.meta.env.BASE_URL}assets/project-dayu.png`}
+              alt=""
+            />
+            <figcaption>ARCHIVE / FILM</figcaption>
+          </figure>
+          <span className="archive-memory archive-memory--stamp">
+            KR / MEMORY UNIT
+            <b>2024—2028</b>
+          </span>
+        </div>
 
         {!compact && !reducedMotion ? (
           <Crosshair

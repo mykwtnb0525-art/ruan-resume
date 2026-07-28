@@ -53,12 +53,19 @@ export function ArchiveCanvas({
         powerPreference: "high-performance",
       });
       canvas.dataset.webgl = "ready";
+      canvas.dataset.modelUrl = ARCHIVE_CONFIG.assets.model;
+      canvas.dataset.modelStatus = "loading";
     } catch {
       canvas.dataset.webgl = "fallback";
       canvas.dataset.model = "atmosphere-only";
+      canvas.dataset.modelStatus = "webgl-unavailable";
+      canvas.dataset.modelUrl = ARCHIVE_CONFIG.assets.model;
       let fallbackFrame = 0;
       const updateFallback = () => {
         const progress = progressRef.current;
+        const collage = easeInOut(
+          rangeProgress(progress, ...ARCHIVE_CONFIG.ranges.collage),
+        );
         const travel = easeInOut(
           rangeProgress(progress, ...ARCHIVE_CONFIG.ranges.travel),
         );
@@ -70,8 +77,13 @@ export function ArchiveCanvas({
           progress,
           ...ARCHIVE_CONFIG.ranges.dispense,
         );
-        const travelZ = lerp(
+        const collageZ = lerp(
           ARCHIVE_CONFIG.camera.idle[2],
+          ARCHIVE_CONFIG.camera.collage[2],
+          collage,
+        );
+        const travelZ = lerp(
+          collageZ,
           ARCHIVE_CONFIG.camera.travelEnd[2],
           travel,
         );
@@ -101,7 +113,10 @@ export function ArchiveCanvas({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(ARCHIVE_CONFIG.colors.dark, compact ? 0.075 : 0.052);
+    scene.fog = new THREE.FogExp2(
+      ARCHIVE_CONFIG.colors.dark,
+      compact ? 0.038 : 0.018,
+    );
     const camera = new THREE.PerspectiveCamera(
       ARCHIVE_CONFIG.camera.fovStart,
       1,
@@ -118,6 +133,7 @@ export function ArchiveCanvas({
 
     let machine = createGashaponMachine(ARCHIVE_CONFIG);
     world.add(machine.group);
+    canvas.dataset.model = "procedural-loading";
     let disposed = false;
     if (ARCHIVE_CONFIG.machine.modelMode === "gltf") {
       const loader = new GLTFLoader();
@@ -134,14 +150,18 @@ export function ArchiveCanvas({
           machine = loadedMachine;
           world.add(machine.group);
           canvas.dataset.model = "gltf";
+          canvas.dataset.modelStatus = "loaded";
         },
         undefined,
-        () => {
+        (error) => {
           canvas.dataset.model = "procedural";
+          canvas.dataset.modelStatus = "error";
+          canvas.dataset.modelError = error?.message || "GLB load failed";
         },
       );
     } else {
       canvas.dataset.model = "procedural";
+      canvas.dataset.modelStatus = "procedural";
     }
 
     const ground = new THREE.Mesh(
@@ -159,8 +179,8 @@ export function ArchiveCanvas({
     ground.receiveShadow = true;
     world.add(ground);
 
-    const ambient = new THREE.HemisphereLight(0x8c735e, 0x050608, 0.34);
-    const key = new THREE.DirectionalLight(0xf0cfad, 2.45);
+    const ambient = new THREE.HemisphereLight(0xdac4ab, 0x111216, 1.5);
+    const key = new THREE.DirectionalLight(0xf0cfad, 3);
     key.position.set(4, 7, 6);
     key.castShadow = !compact;
     key.shadow.mapSize.set(compact ? 512 : 1024, compact ? 512 : 1024);
@@ -171,15 +191,25 @@ export function ArchiveCanvas({
     key.shadow.camera.top = 7;
     key.shadow.camera.bottom = -3;
     key.shadow.bias = -0.0004;
-    const rim = new THREE.DirectionalLight(0x6c9a9c, 1.2);
+    const rim = new THREE.DirectionalLight(0x6c9a9c, 1.45);
     rim.position.set(-5, 4, -3);
     const lowWine = new THREE.PointLight(0x6e1722, 0.44, 7, 2);
     lowWine.position.set(1.4, -0.6, 2.8);
     scene.add(ambient, key, rim, lowWine);
 
+    const debugMode = new URLSearchParams(window.location.search).has(
+      "debugArchive",
+    );
+    if (debugMode) {
+      const axes = new THREE.AxesHelper(4);
+      axes.position.y = ARCHIVE_CONFIG.machine.position[1];
+      world.add(axes);
+    }
+
     const target = new THREE.Vector3(...ARCHIVE_CONFIG.camera.target);
     const capsulePosition = new THREE.Vector3();
     const idleCamera = ARCHIVE_CONFIG.camera.idle;
+    const collageCamera = ARCHIVE_CONFIG.camera.collage;
     const travelCamera = ARCHIVE_CONFIG.camera.travelEnd;
     const arrivalCamera = ARCHIVE_CONFIG.camera.arrival;
     const operationCamera = ARCHIVE_CONFIG.camera.operation;
@@ -210,6 +240,9 @@ export function ArchiveCanvas({
       const delta = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
       lastTime = now;
       const progress = staticMode ? progressRef.current : progressRef.current;
+      const collage = easeInOut(
+        rangeProgress(progress, ...ARCHIVE_CONFIG.ranges.collage),
+      );
       const travel = easeInOut(
         rangeProgress(progress, ...ARCHIVE_CONFIG.ranges.travel),
       );
@@ -229,7 +262,11 @@ export function ArchiveCanvas({
       const cameraX =
         lerp(
           lerp(
-            lerp(idleCamera[0], travelCamera[0], travel),
+            lerp(
+              lerp(idleCamera[0], collageCamera[0], collage),
+              travelCamera[0],
+              travel,
+            ),
             arrivalCamera[0],
             arrival,
           ),
@@ -238,7 +275,11 @@ export function ArchiveCanvas({
         ) + Math.sin(travel * Math.PI) * 0.06;
       const cameraY = lerp(
         lerp(
-          lerp(idleCamera[1], travelCamera[1], travel),
+          lerp(
+            lerp(idleCamera[1], collageCamera[1], collage),
+            travelCamera[1],
+            travel,
+          ),
           arrivalCamera[1],
           arrival,
         ),
@@ -247,7 +288,11 @@ export function ArchiveCanvas({
       );
       const cameraZ = lerp(
         lerp(
-          lerp(idleCamera[2], travelCamera[2], travel),
+          lerp(
+            lerp(idleCamera[2], collageCamera[2], collage),
+            travelCamera[2],
+            travel,
+          ),
           arrivalCamera[2],
           arrival,
         ),
@@ -258,12 +303,12 @@ export function ArchiveCanvas({
       camera.fov = lerp(
         ARCHIVE_CONFIG.camera.fovStart,
         ARCHIVE_CONFIG.camera.fovEnd,
-        Math.max(travel, arrival),
+        Math.max(collage * 0.28, travel, arrival),
       );
       camera.updateProjectionMatrix();
       camera.lookAt(target);
 
-      tunnel.setVisibility(arrival);
+      tunnel.setProgress({ collage, travel, arrival });
       tunnel.fragments.rotation.z = Math.sin(progress * Math.PI * 2) * 0.02;
 
       const bootPower = easeInOut(Math.min(1, boot / 0.38));
@@ -277,7 +322,8 @@ export function ArchiveCanvas({
         material.emissiveIntensity =
           0.035 + Math.max(0, boot - index * 0.18) * 1.45;
       });
-      machine.lights.chamberLight.intensity = bootPower * 0.72;
+      machine.lights.chamberLight.color.set(ARCHIVE_CONFIG.colors.violet);
+      machine.lights.chamberLight.intensity = 0.14 + bootPower * 0.96;
       machine.lights.trayLight.intensity =
         Math.max(0, boot - 0.58) * 0.92;
 
@@ -347,6 +393,15 @@ export function ArchiveCanvas({
         className="archive-canvas"
         aria-label="一条通向复古记忆扭蛋机的三维档案隧道；滚动将启动机器并解锁实习经历胶囊。"
       />
+      <div className="archive-gashapon-fallback" aria-hidden="true">
+        <img
+          src={`${import.meta.env.BASE_URL}assets/archive-gashapon-fallback.png`}
+          alt=""
+        />
+        <span className="archive-gashapon-fallback__light" />
+        <span className="archive-gashapon-fallback__dial" />
+        <span className="archive-gashapon-fallback__capsule" />
+      </div>
     </div>
   );
 }

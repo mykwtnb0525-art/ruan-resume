@@ -82,6 +82,7 @@ export function createMachineDetails(materials) {
     new THREE.PlaneGeometry(1.38, 0.34),
     labelMaterial,
   );
+  label.name = "MachineArchiveLabel";
   label.position.set(0, 5.42, 0.368);
 
   const outputPlate = new THREE.Mesh(

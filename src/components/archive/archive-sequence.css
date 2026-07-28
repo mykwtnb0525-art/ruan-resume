@@ -1,5 +1,7 @@
 .archive-sequence {
   --archive-progress: 0;
+  --entrance-progress: 0;
+  --collage-progress: 0;
   --travel-progress: 0;
   --arrival-progress: 0;
   --boot-progress: 0;
@@ -19,13 +21,13 @@
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(circle at 50% 52%, rgba(74, 16, 24, 0.34), transparent 35%),
-    linear-gradient(180deg, #111216, #08090b 70%);
+    radial-gradient(circle at 50% 48%, rgba(121, 67, 62, 0.34), transparent 33%),
+    linear-gradient(135deg, #4d382f 0%, #241b1a 42%, #111216 72%, #08090b 100%);
 }
 
 .archive-canvas-shell {
   position: absolute;
-  z-index: -4;
+  z-index: 1;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -36,20 +38,138 @@
   height: 100%;
   display: block;
   background: transparent;
+  filter:
+    brightness(calc(0.72 + var(--collage-progress) * 0.16 + var(--arrival-progress) * 0.18))
+    saturate(calc(0.78 + var(--travel-progress) * 0.22))
+    blur(calc((1 - var(--entrance-progress)) * 1.1px));
+}
+
+.archive-canvas[data-webgl="fallback"] {
+  opacity: 0;
+}
+
+.archive-canvas-shell:has(.archive-canvas[data-webgl="fallback"]) {
+  z-index: 3;
+}
+
+.archive-gashapon-fallback {
+  position: absolute;
+  left: 50%;
+  top: 49%;
+  display: none;
+  width: clamp(100px, 9vw, 145px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  opacity: min(
+    0.96,
+    calc(
+      0.72 + var(--collage-progress) * 0.1 + var(--travel-progress) * 0.1 +
+        var(--arrival-progress) * 0.06
+    )
+  );
+  filter:
+    blur(calc((1 - var(--collage-progress)) * 1.2px))
+    brightness(calc(0.82 + var(--travel-progress) * 0.14 + var(--arrival-progress) * 0.08))
+    drop-shadow(0 34px 56px rgba(4, 3, 4, 0.48));
+  transform:
+    translate(-50%, -50%)
+    scale(
+      calc(
+        1 + var(--collage-progress) * 0.45 + var(--travel-progress) * 2.5 +
+          var(--arrival-progress) * 0.6 - var(--reveal-progress) * 0.42
+      )
+    );
+  transform-origin: center;
+  will-change: transform, filter, opacity;
+}
+
+.archive-canvas[data-webgl="fallback"] + .archive-gashapon-fallback {
+  display: block;
+}
+
+.archive-gashapon-fallback img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.archive-gashapon-fallback__light,
+.archive-gashapon-fallback__dial,
+.archive-gashapon-fallback__capsule {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.archive-gashapon-fallback__light {
+  left: 37%;
+  top: 21.4%;
+  width: 26%;
+  height: 2.4%;
+  border-radius: 50%;
+  background: rgba(199, 125, 255, 0.72);
+  box-shadow:
+    0 0 calc(4px + var(--boot-progress) * 9px) rgba(199, 125, 255, 0.88),
+    0 0 calc(9px + var(--boot-progress) * 15px) rgba(0, 240, 255, 0.34);
+  opacity: calc(0.28 + var(--boot-progress) * 0.72);
+}
+
+.archive-gashapon-fallback__dial {
+  left: 45.8%;
+  top: 66.4%;
+  width: 8.4%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(232, 213, 196, 0.52);
+  border-radius: 50%;
+  transform: rotate(calc(var(--boot-progress) * 520deg));
+}
+
+.archive-gashapon-fallback__dial::after {
+  content: "";
+  position: absolute;
+  left: 47%;
+  top: 4%;
+  width: 6%;
+  height: 44%;
+  border-radius: 999px;
+  background: rgba(57, 255, 20, 0.62);
+  box-shadow: 0 0 4px rgba(57, 255, 20, 0.5);
+}
+
+.archive-gashapon-fallback__capsule {
+  left: 47.5%;
+  top: calc(48% + var(--dispense-progress) * 27%);
+  width: 5%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(247, 243, 238, 0.78);
+  border-radius: 50%;
+  background:
+    linear-gradient(180deg, rgba(199, 125, 255, 0.82) 0 48%, rgba(247, 243, 238, 0.86) 49%);
+  box-shadow: 0 0 8px rgba(199, 125, 255, 0.52);
+  opacity: clamp(0, calc(var(--dispense-progress) * 2.2), 1);
+  transform:
+    translateX(calc(var(--dispense-progress) * -18%))
+    rotate(calc(var(--dispense-progress) * 540deg));
 }
 
 .archive-sequence__atmosphere {
   position: absolute;
-  z-index: -3;
+  z-index: 0;
   inset: -5%;
   pointer-events: none;
   opacity: calc(
-    0.03 + var(--travel-progress) * 0.68 - var(--arrival-progress) * 0.52
+    0.28 + var(--collage-progress) * 0.2 + var(--travel-progress) * 0.18 -
+      var(--arrival-progress) * 0.34
   );
   background-size: cover;
   background-position: center;
-  filter: sepia(0.12) saturate(0.78) contrast(1.08) brightness(0.74);
-  mix-blend-mode: screen;
+  filter:
+    sepia(0.24)
+    saturate(0.76)
+    contrast(1.18)
+    brightness(calc(0.56 - var(--arrival-progress) * 0.1));
+  mix-blend-mode: normal;
   transform:
     scale(calc(0.96 + var(--travel-progress) * 0.18))
     translateY(calc(var(--travel-progress) * -1.2%));
@@ -75,12 +195,20 @@
 }
 
 .archive-sequence__paper {
-  z-index: -2;
-  opacity: calc(0.96 - var(--travel-progress) * 0.86);
-  background-color: #e8d5c4;
+  z-index: 2;
+  opacity: calc(
+    0.74 - var(--entrance-progress) * 0.55 - var(--travel-progress) * 0.35
+  );
+  background-color: transparent;
   background-image:
-    radial-gradient(circle at 72% 62%, rgba(159, 30, 45, 0.16), transparent 31%),
-    linear-gradient(90deg, rgba(232, 213, 196, 0.92), rgba(232, 213, 196, 0.26)),
+    radial-gradient(
+      ellipse at 50% 48%,
+      rgba(232, 213, 196, 0.12) 0 11%,
+      rgba(201, 166, 160, 0.38) 25%,
+      rgba(176, 137, 104, 0.72) 54%,
+      rgba(38, 27, 24, 0.9) 100%
+    ),
+    linear-gradient(90deg, rgba(232, 213, 196, 0.72), rgba(122, 86, 68, 0.24)),
     url("/ruan-resume/assets/archive-paper-bg.png");
   background-size: auto, auto, cover;
   background-position: center;
@@ -119,22 +247,24 @@
 
 .archive-sequence__entrance {
   position: relative;
-  z-index: 3;
+  z-index: 5;
   height: 100%;
   min-height: 720px;
   display: grid;
   grid-template-columns: minmax(430px, 0.8fr) minmax(620px, 1.2fr);
   align-items: center;
   color: #211d1b;
-  opacity: calc(1 - var(--travel-progress) * 1.38);
-  transform: scale(calc(1 + var(--travel-progress) * 0.07));
+  opacity: calc(1 - var(--entrance-progress) * 0.96);
+  transform: scale(calc(1 - var(--entrance-progress) * 0.055));
   transform-origin: 48% 50%;
   pointer-events: none;
 }
 
 .archive-sequence__copy {
   padding: 104px 0 128px;
-  transform: translateX(calc(var(--travel-progress) * -8vw));
+  transform:
+    translate3d(calc(var(--entrance-progress) * -13vw), 0, 0)
+    scale(calc(1 - var(--entrance-progress) * 0.08));
 }
 
 .archive-sequence__code {
@@ -154,7 +284,7 @@
   margin: 0;
   font-family: Arial Black, Impact, sans-serif;
   font-size: clamp(4.8rem, 8.7vw, 9.5rem);
-  letter-spacing: calc(-0.09em + var(--travel-progress) * -0.025em);
+  letter-spacing: calc(-0.09em + var(--entrance-progress) * -0.025em);
   line-height: 0.78;
 }
 
@@ -164,15 +294,17 @@
 }
 
 .archive-sequence__copy h2 span:first-child {
-  transform: translateX(calc(var(--travel-progress) * -3.2vw))
-    scale(calc(1 + var(--travel-progress) * 0.09));
+  transform:
+    translate3d(calc(var(--entrance-progress) * -5vw), 0, 0)
+    scale(calc(1 - var(--entrance-progress) * 0.04));
 }
 
 .archive-sequence__copy h2 span:last-child {
   color: transparent;
   -webkit-text-stroke: 1px rgba(67, 48, 38, 0.72);
-  transform: translateX(calc(var(--travel-progress) * 2.2vw))
-    scale(calc(1 + var(--travel-progress) * 0.045));
+  transform:
+    translate3d(calc(var(--entrance-progress) * -1.6vw), 0, 0)
+    scale(calc(1 - var(--entrance-progress) * 0.12));
   transform-origin: left center;
 }
 
@@ -216,10 +348,10 @@
   pointer-events: none;
   transform:
     translate(
-      calc(var(--travel-progress) * 18vw),
-      calc(var(--travel-progress) * 8vh)
+      calc(var(--entrance-progress) * 21vw),
+      calc(var(--entrance-progress) * 9vh)
     )
-    scale(calc(1 + var(--travel-progress) * 0.08));
+    scale(calc(1 + var(--entrance-progress) * 0.16));
 }
 
 .archive-sequence__object img {
@@ -243,6 +375,131 @@
 
 .archive-sequence__object figcaption span {
   color: #f7f3ee;
+}
+
+.archive-sequence__memory-fragments {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  overflow: hidden;
+  perspective: 1100px;
+  pointer-events: none;
+  opacity: min(
+    var(--collage-progress),
+    calc(1 - var(--arrival-progress) * 0.92)
+  );
+}
+
+.archive-memory {
+  position: absolute;
+  display: block;
+  margin: 0;
+  padding: 7px 7px 22px;
+  border: 1px solid rgba(89, 63, 50, 0.42);
+  background: rgba(221, 196, 170, 0.7);
+  box-shadow:
+    0 18px 46px rgba(16, 11, 10, 0.35),
+    8px 9px 0 rgba(92, 59, 48, 0.1);
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+}
+
+.archive-memory img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  filter: sepia(0.38) saturate(0.64) contrast(1.08);
+}
+
+.archive-memory figcaption {
+  position: absolute;
+  left: 9px;
+  bottom: 7px;
+  color: rgba(55, 41, 34, 0.76);
+  font: 0.43rem/1 "Courier New", monospace;
+  letter-spacing: 0.12em;
+}
+
+.archive-memory--portrait {
+  left: 7vw;
+  top: 12vh;
+  width: clamp(128px, 13vw, 210px);
+  transform:
+    translate3d(
+      calc(var(--collage-progress) * -5vw - var(--travel-progress) * 22vw),
+      calc(var(--travel-progress) * -10vh),
+      calc(var(--travel-progress) * 420px)
+    )
+    rotate(-6deg)
+    scale(calc(0.78 + var(--collage-progress) * 0.22 + var(--travel-progress) * 0.18));
+  filter: blur(calc(var(--travel-progress) * 1.4px));
+}
+
+.archive-memory--mist {
+  right: 8vw;
+  top: 17vh;
+  width: clamp(160px, 16vw, 260px);
+  transform:
+    translate3d(
+      calc(var(--collage-progress) * 4vw + var(--travel-progress) * 24vw),
+      calc(var(--travel-progress) * -7vh),
+      calc(var(--travel-progress) * 520px)
+    )
+    rotate(4deg)
+    scale(calc(0.72 + var(--collage-progress) * 0.28 + var(--travel-progress) * 0.2));
+}
+
+.archive-memory--time {
+  left: 18vw;
+  bottom: 5vh;
+  width: clamp(170px, 19vw, 300px);
+  transform:
+    translate3d(
+      calc(var(--travel-progress) * -28vw),
+      calc(var(--travel-progress) * 16vh),
+      calc(var(--travel-progress) * 620px)
+    )
+    rotate(3deg)
+    scale(calc(0.66 + var(--collage-progress) * 0.34 + var(--travel-progress) * 0.24));
+}
+
+.archive-memory--dayu {
+  right: 18vw;
+  bottom: 8vh;
+  width: clamp(145px, 16vw, 250px);
+  transform:
+    translate3d(
+      calc(var(--travel-progress) * 30vw),
+      calc(var(--travel-progress) * 13vh),
+      calc(var(--travel-progress) * 560px)
+    )
+    rotate(-4deg)
+    scale(calc(0.74 + var(--collage-progress) * 0.26 + var(--travel-progress) * 0.2));
+}
+
+.archive-memory--stamp {
+  right: 3vw;
+  top: 48%;
+  padding: 18px 20px 14px;
+  border: 2px dashed rgba(84, 45, 49, 0.58);
+  color: rgba(74, 16, 24, 0.76);
+  background: rgba(201, 166, 160, 0.58);
+  font: 0.53rem/1.35 "Courier New", monospace;
+  letter-spacing: 0.13em;
+  transform:
+    translate3d(
+      calc(var(--travel-progress) * 24vw),
+      calc(var(--travel-progress) * -3vh),
+      calc(var(--travel-progress) * 480px)
+    )
+    rotate(7deg);
+}
+
+.archive-memory--stamp b {
+  display: block;
+  margin-top: 8px;
+  font-weight: 400;
 }
 
 .archive-hud {
@@ -437,7 +694,7 @@
   font: 0.5rem/1 "Courier New", monospace;
   letter-spacing: 0.15em;
   pointer-events: none;
-  opacity: calc(1 - var(--travel-progress) * 1.8);
+  opacity: calc(1 - var(--entrance-progress) * 1.8);
 }
 
 .archive-sequence__progress > span {
@@ -463,7 +720,7 @@
   background: none;
   font: 0.46rem/1 "Courier New", monospace;
   letter-spacing: 0.13em;
-  opacity: calc(var(--travel-progress) * 1.4);
+  opacity: calc(var(--entrance-progress) * 1.4);
 }
 
 .reduced-archive {
@@ -499,7 +756,8 @@
   color: #211d1b;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(40px) scale(0.98);
+  transform-origin: 52% 78%;
+  transform: translateY(22px);
   pointer-events: none;
   transition:
     opacity 0.58s ease,
@@ -512,7 +770,7 @@
   position: absolute;
   z-index: -1;
   inset: 0;
-  opacity: 0.94;
+  opacity: calc(var(--reveal-progress) * 0.94);
   background:
     linear-gradient(90deg, rgba(232, 213, 196, 0.96), rgba(201, 166, 160, 0.9)),
     url("/ruan-resume/assets/archive-paper-bg.png");
@@ -521,9 +779,9 @@
 }
 
 .internship-reveal.is-visible {
-  opacity: 1;
+  opacity: min(1, calc(var(--reveal-progress) * 1.75));
   visibility: visible;
-  transform: translateY(0) scale(1);
+  transform: translateY(calc((1 - var(--reveal-progress)) * 22px));
   pointer-events: auto;
 }
 
@@ -534,6 +792,8 @@
   color: #7b292e;
   font: 0.56rem/1 "Courier New", monospace;
   letter-spacing: 0.15em;
+  opacity: clamp(0, calc((var(--reveal-progress) - 0.42) * 3.5), 1);
+  transform: translateY(calc((1 - var(--reveal-progress)) * 12px));
 }
 
 .internship-reveal__cards {
@@ -554,6 +814,8 @@
     url("/ruan-resume/assets/archive-paper-bg.png");
   background-size: auto, 860px auto;
   box-shadow: 14px 18px 0 rgba(58, 39, 30, 0.14);
+  transform-origin: 52% 88%;
+  will-change: transform, opacity;
 }
 
 .internship-card::after {
@@ -572,15 +834,39 @@
 .internship-card--worksite {
   grid-row: 1 / 3;
   align-self: stretch;
-  transform: rotate(-1.1deg);
+  opacity: clamp(0, calc((var(--reveal-progress) - 0.04) * 3.6), 1);
+  transform:
+    translate3d(
+      calc((1 - var(--reveal-progress)) * 18vw),
+      calc((1 - var(--reveal-progress)) * 38vh),
+      0
+    )
+    scale(calc(0.08 + var(--reveal-progress) * 0.92))
+    rotate(calc(-7deg + var(--reveal-progress) * 5.9deg));
 }
 
 .internship-card--process {
-  transform: rotate(0.8deg);
+  opacity: clamp(0, calc((var(--reveal-progress) - 0.3) * 3.8), 1);
+  transform:
+    translate3d(
+      calc((1 - var(--reveal-progress)) * -14vw),
+      calc((1 - var(--reveal-progress)) * 24vh),
+      0
+    )
+    scale(calc(0.18 + var(--reveal-progress) * 0.82))
+    rotate(calc(6deg - var(--reveal-progress) * 5.2deg));
 }
 
 .internship-card--learned {
-  transform: rotate(-0.5deg);
+  opacity: clamp(0, calc((var(--reveal-progress) - 0.48) * 3.5), 1);
+  transform:
+    translate3d(
+      calc((1 - var(--reveal-progress)) * 11vw),
+      calc((1 - var(--reveal-progress)) * 18vh),
+      0
+    )
+    scale(calc(0.22 + var(--reveal-progress) * 0.78))
+    rotate(calc(-5deg + var(--reveal-progress) * 4.5deg));
 }
 
 .internship-card__index {
@@ -689,6 +975,8 @@
   color: #211d1b;
   font: 0.58rem/1 "Courier New", monospace;
   letter-spacing: 0.14em;
+  opacity: clamp(0, calc((var(--reveal-progress) - 0.68) * 4), 1);
+  transform: translateY(calc((1 - var(--reveal-progress)) * 12px));
 }
 
 .internship-reveal__continue svg {

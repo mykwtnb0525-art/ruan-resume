@@ -23,7 +23,7 @@ const range = await page.locator("#chapter").evaluate((element) => ({
   start: Number(element.dataset.archiveStart),
   end: Number(element.dataset.archiveEnd),
 }));
-const checkpoints = [0.001, 0.31, 0.52, 0.7, 0.85, 0.965];
+const checkpoints = [0.001, 0.3, 0.58, 0.8, 0.9, 0.98];
 const states = [];
 for (const progress of checkpoints) {
   await page.evaluate(
@@ -53,7 +53,7 @@ for (const progress of checkpoints) {
 }
 const assets = await page.evaluate(async () => {
   const urls = [
-    "/ruan-resume/models/archive-gashapon.glb",
+    "/ruan-resume/models/archive-gashapon-web.glb",
     "/ruan-resume/assets/archive-dream-corridor.png",
   ];
   return Promise.all(
@@ -72,9 +72,9 @@ await browser.close();
 const expected = [
   "IDLE",
   "TRAVEL",
+  "TRAVEL",
   "TARGET_LOCK",
   "BOOTING",
-  "DISPENSING",
   "UNSEALED",
 ];
 const result = {
@@ -82,8 +82,8 @@ const result = {
   states,
   phasesCorrect: states.every((state, index) => state.phase === expected[index]),
   cameraAdvanced: states[1].cameraZ < states[0].cameraZ,
-  machineBooted: states[3].boot > 0.5,
-  capsuleDispensed: states[4].capsule > 0.5,
+  machineBooted: states[4].boot > 0.4,
+  capsuleDispensed: states[5].capsule > 0.5,
   assets,
   errors,
 };

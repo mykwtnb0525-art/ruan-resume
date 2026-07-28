@@ -19,7 +19,7 @@ const modelPath = path.join(
   projectRoot,
   "public",
   "models",
-  "archive-gashapon.glb",
+  "archive-gashapon-web.glb",
 );
 const buffer = await readFile(modelPath);
 const arrayBuffer = buffer.buffer.slice(
@@ -41,6 +41,9 @@ const requiredNodes = [
   "OutputCapsuleTop",
   "OutputCapsuleBottom",
   "OutputCapsuleSeam",
+  "MachineArchiveLabel",
+  "MachineChamberLight",
+  "MachineTrayLight",
 ];
 const nodes = requiredNodes.map((name) => ({
   name,

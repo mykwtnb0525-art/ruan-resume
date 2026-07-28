@@ -2,101 +2,98 @@ import * as THREE from "three";
 
 export function createArchiveTunnel({ compact = false } = {}) {
   const group = new THREE.Group();
-  group.name = "ArchiveTunnel";
-  const materials = [];
+  group.name = "ArchiveMemoryField";
 
-  const frameMaterial = new THREE.LineBasicMaterial({
-    color: 0x7f726a,
-    transparent: true,
-    opacity: 0.24,
-  });
-  const railMaterial = new THREE.LineBasicMaterial({
-    color: 0x9f1e2d,
-    transparent: true,
-    opacity: 0.14,
-  });
-  materials.push(frameMaterial, railMaterial);
+  const fragments = new THREE.Group();
+  fragments.name = "ArchiveMemoryFragments";
+  group.add(fragments);
 
-  const frames = [];
-  const frameCount = compact ? 8 : 16;
-  for (let index = 0; index < frameCount; index += 1) {
-    const z = 1 + index * (17 / frameCount);
-    frames.push(
-      -5.8, -3.2, z, 5.8, -3.2, z,
-      5.8, -3.2, z, 5.8, 3.2, z,
-      5.8, 3.2, z, -5.8, 3.2, z,
-      -5.8, 3.2, z, -5.8, -3.2, z,
-    );
-  }
-  const frameGeometry = new THREE.BufferGeometry();
-  frameGeometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(frames, 3),
-  );
-  group.add(new THREE.LineSegments(frameGeometry, frameMaterial));
+  const paperMaterials = [
+    new THREE.MeshBasicMaterial({
+      color: 0xc8ad91,
+      transparent: true,
+      opacity: 0.11,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    }),
+    new THREE.MeshBasicMaterial({
+      color: 0x9d7474,
+      transparent: true,
+      opacity: 0.09,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    }),
+    new THREE.MeshBasicMaterial({
+      color: 0x557d78,
+      transparent: true,
+      opacity: 0.07,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  ];
 
-  const rails = [];
-  [-4.4, -2.2, 0, 2.2, 4.4].forEach((x) => {
-    rails.push(x, -3.2, 0, x, -3.2, 18);
-    rails.push(x, 3.2, 0, x, 3.2, 18);
-  });
-  [-2.1, -0.7, 0.7, 2.1].forEach((y) => {
-    rails.push(-5.8, y, 0, -5.8, y, 18);
-    rails.push(5.8, y, 0, 5.8, y, 18);
-  });
-  const railGeometry = new THREE.BufferGeometry();
-  railGeometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(rails, 3),
-  );
-  group.add(new THREE.LineSegments(railGeometry, railMaterial));
-
-  const paperGeometry = new THREE.PlaneGeometry(0.9, 0.62);
-  const paperMaterial = new THREE.MeshBasicMaterial({
-    color: 0xc8b5a4,
-    transparent: true,
-    opacity: 0.12,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  });
-  materials.push(paperMaterial);
-  const fragmentCount = compact ? 5 : 16;
-  const fragments = new THREE.InstancedMesh(
-    paperGeometry,
-    paperMaterial,
-    fragmentCount,
-  );
-  const matrix = new THREE.Matrix4();
-  const quaternion = new THREE.Quaternion();
-  const scale = new THREE.Vector3();
-  const position = new THREE.Vector3();
+  const fragmentCount = compact ? 6 : 14;
   for (let index = 0; index < fragmentCount; index += 1) {
     const side = index % 2 ? 1 : -1;
-    position.set(
-      side * (3.5 + (index % 4) * 0.45),
-      -2.1 + ((index * 1.73) % 4.2),
-      1.2 + ((index * 3.17) % 15.8),
+    const width = 0.85 + (index % 4) * 0.22;
+    const height = 0.62 + (index % 3) * 0.2;
+    const fragment = new THREE.Mesh(
+      new THREE.PlaneGeometry(width, height),
+      paperMaterials[index % paperMaterials.length],
     );
-    quaternion.setFromEuler(
-      new THREE.Euler(index * 0.19, side * 0.45, index * 0.13),
+    fragment.position.set(
+      side * (3.1 + (index % 3) * 0.72),
+      -2.15 + ((index * 1.63) % 4.3),
+      3 + ((index * 3.37) % 23),
     );
-    const size = 0.65 + (index % 3) * 0.18;
-    scale.set(size, size, size);
-    matrix.compose(position, quaternion, scale);
-    fragments.setMatrixAt(index, matrix);
+    fragment.rotation.set(
+      (index % 3 - 1) * 0.12,
+      side * (0.44 + (index % 4) * 0.07),
+      (index % 5 - 2) * 0.1,
+    );
+    fragment.userData.baseX = fragment.position.x;
+    fragment.userData.baseZ = fragment.position.z;
+    fragment.userData.drift = 0.45 + (index % 4) * 0.16;
+    fragments.add(fragment);
   }
-  fragments.instanceMatrix.needsUpdate = true;
-  group.add(fragments);
+
+  const hazeMaterial = new THREE.MeshBasicMaterial({
+    color: 0x7a3f54,
+    transparent: true,
+    opacity: 0.035,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  [-1, 1].forEach((side) => {
+    const haze = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.5, 8),
+      hazeMaterial,
+    );
+    haze.position.set(side * 4.8, 0.2, 13);
+    haze.rotation.y = side * -0.46;
+    group.add(haze);
+  });
 
   return {
     group,
-    materials,
+    materials: [...paperMaterials, hazeMaterial],
     fragments,
-    setVisibility(progress) {
-      const opacity = Math.max(0.025, 1 - progress * 0.92);
-      frameMaterial.opacity = 0.24 * opacity;
-      railMaterial.opacity = 0.14 * opacity;
-      paperMaterial.opacity = 0.12 * opacity;
+    setProgress({ collage, travel, arrival }) {
+      fragments.children.forEach((fragment, index) => {
+        const side = index % 2 ? 1 : -1;
+        fragment.position.x =
+          fragment.userData.baseX +
+          side * travel * fragment.userData.drift * 2.2;
+        fragment.position.z =
+          fragment.userData.baseZ - travel * fragment.userData.drift * 3.2;
+      });
+      const fade = Math.max(0.18, 1 - arrival * 0.74);
+      paperMaterials[0].opacity = (0.04 + collage * 0.12) * fade;
+      paperMaterials[1].opacity = (0.03 + collage * 0.1) * fade;
+      paperMaterials[2].opacity = (0.02 + travel * 0.09) * fade;
+      hazeMaterial.opacity = (0.018 + travel * 0.052) * fade;
     },
   };
 }

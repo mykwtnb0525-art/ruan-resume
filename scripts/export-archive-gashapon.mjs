@@ -40,7 +40,7 @@ const outputPath = path.join(
   projectRoot,
   "public",
   "models",
-  "archive-gashapon.glb",
+  "archive-gashapon-web.glb",
 );
 
 const scene = new THREE.Scene();

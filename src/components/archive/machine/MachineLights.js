@@ -47,7 +47,7 @@ export function createMachineLights() {
     group.add(socket, bulb);
   });
 
-  const chamberLight = new THREE.PointLight(MACHINE_PALETTE.cyan, 0, 4.2, 2);
+  const chamberLight = new THREE.PointLight(0xba72ff, 0, 4.2, 2);
   chamberLight.name = "MachineChamberLight";
   chamberLight.position.set(0, 4.65, 0.18);
   const trayLight = new THREE.PointLight(MACHINE_PALETTE.red, 0, 2.8, 2);
