@@ -66,37 +66,6 @@
     linear-gradient(180deg, rgba(232, 213, 196, 0.04), rgba(8, 9, 11, 0.58));
 }
 
-.archive-canvas-fallback {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at center, rgba(74, 16, 24, 0.3), transparent 22%),
-    #08090b;
-}
-
-.archive-canvas-fallback__tunnel {
-  position: absolute;
-  inset: -34%;
-  background:
-    repeating-radial-gradient(
-      ellipse at center,
-      transparent 0 28px,
-      rgba(126, 119, 113, 0.18) 29px 31px
-    ),
-    conic-gradient(
-      from 45deg at center,
-      transparent,
-      rgba(126, 119, 113, 0.14),
-      transparent 24%,
-      rgba(159, 30, 45, 0.12),
-      transparent 52%,
-      rgba(126, 119, 113, 0.14),
-      transparent
-    );
-  transform: scale(calc(0.5 + var(--travel-progress) * 0.62));
-}
-
 .archive-sequence__paper,
 .archive-sequence__grain,
 .archive-sequence__scanlines {

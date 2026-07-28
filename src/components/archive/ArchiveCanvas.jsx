@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { ARCHIVE_CONFIG, rangeProgress } from "./archiveConfig.js";
@@ -40,8 +40,6 @@ export function ArchiveCanvas({
   compact = false,
 }) {
   const canvasRef = useRef(null);
-  const [webglFailed, setWebglFailed] = useState(false);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
@@ -58,7 +56,6 @@ export function ArchiveCanvas({
     } catch {
       canvas.dataset.webgl = "fallback";
       canvas.dataset.model = "atmosphere-only";
-      setWebglFailed(true);
       let fallbackFrame = 0;
       const updateFallback = () => {
         const progress = progressRef.current;
@@ -344,19 +341,12 @@ export function ArchiveCanvas({
   }, [compact, progressRef, staticMode]);
 
   return (
-    <div
-      className={`archive-canvas-shell ${webglFailed ? "is-fallback" : ""}`}
-    >
+    <div className="archive-canvas-shell">
       <canvas
         ref={canvasRef}
         className="archive-canvas"
         aria-label="一条通向复古记忆扭蛋机的三维档案隧道；滚动将启动机器并解锁实习经历胶囊。"
       />
-      {webglFailed ? (
-        <div className="archive-canvas-fallback" aria-hidden="true">
-          <span className="archive-canvas-fallback__tunnel" />
-        </div>
-      ) : null}
     </div>
   );
 }
