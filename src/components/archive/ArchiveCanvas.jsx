@@ -57,7 +57,7 @@ export function ArchiveCanvas({
       canvas.dataset.webgl = "ready";
     } catch {
       canvas.dataset.webgl = "fallback";
-      canvas.dataset.model = "css-fallback";
+      canvas.dataset.model = "atmosphere-only";
       setWebglFailed(true);
       let fallbackFrame = 0;
       const updateFallback = () => {
@@ -355,10 +355,6 @@ export function ArchiveCanvas({
       {webglFailed ? (
         <div className="archive-canvas-fallback" aria-hidden="true">
           <span className="archive-canvas-fallback__tunnel" />
-          <span className="archive-canvas-fallback__machine">
-            <i />
-            <b />
-          </span>
         </div>
       ) : null}
     </div>

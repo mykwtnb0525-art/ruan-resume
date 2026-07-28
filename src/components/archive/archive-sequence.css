@@ -97,58 +97,6 @@
   transform: scale(calc(0.5 + var(--travel-progress) * 0.62));
 }
 
-.archive-canvas-fallback__machine {
-  position: absolute;
-  left: 50%;
-  top: 52%;
-  width: 190px;
-  height: 260px;
-  border: 8px solid #bcae99;
-  border-radius: 22px 22px 8px 8px;
-  background: #17372f;
-  box-shadow: 0 0 0 1px #332e2a, 0 30px 80px #000;
-  transform:
-    translate(-50%, -50%)
-    scale(calc(0.18 + var(--travel-progress) * 0.82));
-}
-
-.archive-canvas-fallback__machine::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: -128px;
-  width: 190px;
-  height: 150px;
-  border: 7px solid rgba(188, 174, 153, 0.8);
-  border-radius: 50% 50% 18% 18%;
-  background:
-    radial-gradient(circle at 35% 60%, #782332 0 12px, transparent 13px),
-    radial-gradient(circle at 62% 43%, #a7968d 0 13px, transparent 14px),
-    rgba(38, 61, 57, 0.42);
-  transform: translateX(-50%);
-}
-
-.archive-canvas-fallback__machine i {
-  position: absolute;
-  right: 23px;
-  top: 72px;
-  width: 58px;
-  height: 58px;
-  border: 9px solid #332e2a;
-  border-radius: 50%;
-  transform: rotate(calc(var(--boot-progress) * 520deg));
-}
-
-.archive-canvas-fallback__machine b {
-  position: absolute;
-  left: 25px;
-  bottom: 26px;
-  width: 88px;
-  height: 34px;
-  border: 5px solid #332e2a;
-  background: #08090b;
-}
-
 .archive-sequence__paper,
 .archive-sequence__grain,
 .archive-sequence__scanlines {
