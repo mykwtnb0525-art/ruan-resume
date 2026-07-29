@@ -1,4 +1,4 @@
-export function ArchiveDebugPanel({ snapshot }) {
+export function ArchiveDebugPanel({ snapshot, testConfig }) {
   if (!snapshot) return null;
 
   return (
@@ -12,6 +12,18 @@ export function ArchiveDebugPanel({ snapshot }) {
       <span>
         activeCapsule {String(snapshot.activeCapsule + 1).padStart(2, "0")}
       </span>
+      {testConfig ? (
+        <>
+          <strong>DEBUG CONFIG / NOT RENDERED</strong>
+          <span>id {testConfig.id}</span>
+          <span>
+            dial {testConfig.machine.dialMotion.direction}{" "}
+            {testConfig.machine.dialMotion.degrees}°
+          </span>
+          <span>opening {testConfig.capsule.openingType}</span>
+          <span>layout {testConfig.archive.layoutId}</span>
+        </>
+      ) : null}
     </aside>
   );
 }

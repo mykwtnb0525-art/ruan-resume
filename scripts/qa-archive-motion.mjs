@@ -35,6 +35,7 @@ async function recordJourney(name, segments) {
   const page = await context.newPage();
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   await page.locator("#chapter").waitFor();
+  await page.locator("#chapter").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const status = document.querySelector(".archive-canvas")?.dataset.modelStatus;
     return status && status !== "loading";

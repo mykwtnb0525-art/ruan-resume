@@ -56,6 +56,11 @@ img {
   max-width: 100%;
 }
 
+.archive-deferred-host {
+  position: relative;
+  min-height: 100svh;
+}
+
 .archive-sequence-fallback {
   min-height: 100svh;
   display: grid;
@@ -63,7 +68,7 @@ img {
   color: rgba(74, 16, 24, 0.7);
   background:
     linear-gradient(rgba(232, 213, 196, 0.88), rgba(232, 213, 196, 0.88)),
-    url("/ruan-resume/assets/archive-paper-bg.png");
+    var(--asset-archive-paper);
   background-size: cover;
   font: 0.58rem/1 "Courier New", monospace;
   letter-spacing: 0.16em;
@@ -1817,7 +1822,7 @@ img {
   background-color: #e8d5c4;
   background-image:
     linear-gradient(rgba(232, 213, 196, 0.08), rgba(232, 213, 196, 0.08)),
-    url("/ruan-resume/assets/archive-paper-bg.png");
+    var(--asset-archive-paper);
   background-size: cover;
   background-position: center top;
   box-shadow: inset 0 24px 60px rgba(66, 46, 35, 0.1);
@@ -2120,7 +2125,7 @@ img {
   color: #302824;
   border-color: rgba(67, 48, 38, 0.4);
   background-color: #d7bda5;
-  background-image: url("/ruan-resume/assets/archive-paper-bg.png");
+  background-image: var(--asset-archive-paper);
   background-size: cover;
   background-position: center;
   background-blend-mode: multiply;
@@ -2186,7 +2191,7 @@ img {
   border: 1px solid rgba(62, 45, 35, 0.36);
   color: #332a26;
   background-color: #e8d5c4;
-  background-image: url("/ruan-resume/assets/archive-paper-bg.png");
+  background-image: var(--asset-archive-paper);
   background-size: 820px auto;
   box-shadow: 9px 10px 0 rgba(0, 0, 0, 0.24);
 }
@@ -2210,7 +2215,7 @@ img {
 .project-modal__panel {
   color: #302824;
   background-color: #e8d5c4;
-  background-image: url("/ruan-resume/assets/archive-paper-bg.png");
+  background-image: var(--asset-archive-paper);
   background-size: cover;
 }
 
@@ -2232,7 +2237,7 @@ img {
 .chapter-portal {
   color: #332a26;
   background-color: #e8d5c4;
-  background-image: url("/ruan-resume/assets/archive-paper-bg.png");
+  background-image: var(--asset-archive-paper);
   background-size: cover;
   background-position: center;
 }

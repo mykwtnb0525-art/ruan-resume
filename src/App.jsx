@@ -32,6 +32,7 @@ import {
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { capabilities, profile, projects, tools } from "./data.js";
+import { assetUrl } from "./utils/assetUrl.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -40,6 +41,62 @@ const LazyArchiveSequence = lazy(() =>
     default: module.ArchiveSequence,
   })),
 );
+
+function DeferredArchiveSequence() {
+  const hostRef = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(
+    () => window.location.hash === "#chapter",
+  );
+
+  useEffect(() => {
+    if (shouldLoad) return undefined;
+    const host = hostRef.current;
+    if (!host) return undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldLoad(true);
+        observer.disconnect();
+      },
+      { rootMargin: "0px", threshold: 0.05 },
+    );
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    if (!shouldLoad || window.location.hash !== "#chapter") return;
+    const frame = window.requestAnimationFrame(() => {
+      hostRef.current?.scrollIntoView({ block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [shouldLoad]);
+
+  return (
+    <section
+      ref={hostRef}
+      id="chapter"
+      className="archive-deferred-host"
+      aria-label="视觉档案入口"
+    >
+      {shouldLoad ? (
+        <Suspense
+          fallback={
+            <div className="archive-sequence-fallback">
+              <span>LOADING / ARCHIVE SEQUENCE</span>
+            </div>
+          }
+        >
+          <LazyArchiveSequence embedded />
+        </Suspense>
+      ) : (
+        <div className="archive-sequence-fallback" aria-hidden="true">
+          <span>ARCHIVE / STANDBY</span>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function LoadingScreen({ hidden }) {
   return (
@@ -151,17 +208,17 @@ function Hero({ onOpen }) {
       <Navigation />
       <img
         className="hero__collage"
-        src="/ruan-resume/assets/hero-collage.png"
+        src={assetUrl("assets/hero-collage.png")}
         alt="人物投影、旧游戏机、铁皮火箭、红风筝与玻璃弹珠组成的超现实拼贴"
       />
       <img
         className="hero__persona"
-        src="/ruan-resume/assets/hero-kaicheng-approved.png"
+        src={assetUrl("assets/hero-kaicheng-approved.png")}
         alt="阮凯城红黑复古质感个人肖像"
       />
       <img
         className="hero__objects-right"
-        src="/ruan-resume/assets/hero-collage.png"
+        src={assetUrl("assets/hero-collage.png")}
         alt=""
         aria-hidden="true"
       />
@@ -212,7 +269,7 @@ function Hero({ onOpen }) {
         data-cursor="PLAY"
         aria-label="打开精选影片《我们还有多少时间》"
       >
-        <img src="/ruan-resume/assets/project-time.png" alt="" />
+        <img src={assetUrl("assets/project-time.png")} alt="" />
         <span className="hero-reel__shade" />
         <span className="hero-reel__play">
           <Play weight="fill" />
@@ -253,7 +310,7 @@ function Profile() {
         <div className="profile__grid">
           <div className="profile__visual reveal-image" data-tilt>
             <img
-              src="/ruan-resume/assets/kaicheng-fullbody.png"
+              src={assetUrl("assets/kaicheng-fullbody.png")}
               alt="阮凯城红色背景全身个人形象照"
             />
             <span className="profile__frame-label">PORTRAIT / FILE 0708</span>
@@ -528,7 +585,11 @@ function Capabilities() {
 function Contact() {
   return (
     <section className="contact" id="contact">
-      <img src="/ruan-resume/assets/project-gala.png" alt="" className="contact__image" />
+      <img
+        src={assetUrl("assets/project-gala.png")}
+        alt=""
+        className="contact__image"
+      />
       <div className="contact__veil" />
       <div className="contact__content section-shell">
         <MuseumMark
@@ -882,18 +943,7 @@ export function App() {
       <CustomCursor disabled={qaMode} />
       <main>
         <Hero onOpen={setSelectedProject} />
-        <Suspense
-          fallback={
-            <section
-              className="archive-sequence-fallback"
-              aria-label="正在装载视觉档案入口"
-            >
-              <span>LOADING / ARCHIVE SEQUENCE</span>
-            </section>
-          }
-        >
-          <LazyArchiveSequence />
-        </Suspense>
+        <DeferredArchiveSequence />
         <ArchiveGuide />
         <Profile />
         <Projects onOpen={setSelectedProject} />

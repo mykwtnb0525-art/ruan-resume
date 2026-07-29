@@ -47,6 +47,7 @@ for (const pass of passes) {
   url.searchParams.set("lightingPass", pass.id);
   await page.goto(url.toString(), { waitUntil: "networkidle" });
   await page.locator("#chapter").waitFor();
+  await page.locator("#chapter").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     return document.querySelector(".archive-canvas")?.dataset.modelStatus ===
       "loaded";

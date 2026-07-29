@@ -1,20 +1,19 @@
-const clamp01 = (value) => Math.min(1, Math.max(0, value));
+import { PRODUCTION_CHAPTERS } from "./config/chapterRegistry.ts";
 
-export const ARCHIVE_SCROLL = {
-  entryVh: 650,
-  chapterOneVh: 620,
-  totalVh: 1270,
-  plannedTotalVh: 4510,
+const clamp01 = (value) => Math.min(1, Math.max(0, value));
+const [chapter01] = PRODUCTION_CHAPTERS;
+
+export const NARRATIVE_MAP = {
+  entryLengthVh: 650,
+  totalLengthVh: 650 + chapter01.scrollLengthVh,
+  chapters: [chapter01],
 };
 
-export const ARCHIVE_CHAPTER_REGISTRY = [
-  { id: "time", index: 0, scrollVh: 620, implemented: true },
-  { id: "mist", index: 1, scrollVh: 580, implemented: false },
-  { id: "abc", index: 2, scrollVh: 560, implemented: false },
-  { id: "gala", index: 3, scrollVh: 600, implemented: false },
-  { id: "tiktok", index: 4, scrollVh: 500, implemented: false },
-  { id: "dayu", index: 5, scrollVh: 680, implemented: false },
-];
+export const ARCHIVE_SCROLL = {
+  entryVh: NARRATIVE_MAP.entryLengthVh,
+  chapterOneVh: chapter01.scrollLengthVh,
+  totalVh: NARRATIVE_MAP.totalLengthVh,
+};
 
 export const ENTRY_RANGES = {
   keyIdle: [0, 0.1],
@@ -25,20 +24,7 @@ export const ENTRY_RANGES = {
   machineAwake: [0.9, 1],
 };
 
-export const CHAPTER_ONE_RANGES = {
-  takeover: [0, 0.12],
-  identify: [0.12, 0.2],
-  prime: [0.2, 0.32],
-  activate: [0.32, 0.44],
-  dispense: [0.44, 0.55],
-  land: [0.55, 0.6],
-  open: [0.6, 0.64],
-  emerge: [0.64, 0.72],
-  read: [0.72, 0.91],
-  close: [0.91, 0.95],
-  commit: [0.95, 0.97],
-  bridge: [0.97, 1],
-};
+export const CHAPTER_ONE_RANGES = chapter01.phases;
 
 export function rangeProgress(progress, start, end) {
   if (end <= start) return progress >= end ? 1 : 0;
@@ -54,28 +40,34 @@ function phaseFromEntry(progress) {
   return "MACHINE_AWAKE";
 }
 
-function phaseFromChapter(progress) {
-  if (progress < CHAPTER_ONE_RANGES.identify[0]) {
+function phaseFromChapter(progress, phases) {
+  if (progress < phases.identify[0]) {
     return "ENVIRONMENT_TAKEOVER";
   }
-  if (progress < CHAPTER_ONE_RANGES.prime[0]) return "CAPSULE_IDENTIFY";
-  if (progress < CHAPTER_ONE_RANGES.activate[0]) return "MACHINE_PRIME";
-  if (progress < CHAPTER_ONE_RANGES.dispense[0]) {
+  if (progress < phases.prime[0]) return "CAPSULE_IDENTIFY";
+  if (progress < phases.activate[0]) return "MACHINE_PRIME";
+  if (progress < phases.dispense[0]) {
     return "MACHINE_ACTIVATE";
   }
-  if (progress < CHAPTER_ONE_RANGES.land[0]) return "CAPSULE_DISPENSE";
-  if (progress < CHAPTER_ONE_RANGES.open[0]) return "CAPSULE_LAND";
-  if (progress < CHAPTER_ONE_RANGES.emerge[0]) return "CAPSULE_OPEN";
-  if (progress < CHAPTER_ONE_RANGES.read[0]) return "ARCHIVE_EMERGE";
-  if (progress < CHAPTER_ONE_RANGES.close[0]) return "ARCHIVE_READ";
-  if (progress < CHAPTER_ONE_RANGES.commit[0]) return "ARCHIVE_CLOSE";
-  if (progress < CHAPTER_ONE_RANGES.bridge[0]) return "MEMORY_COMMIT";
+  if (progress < phases.land[0]) return "CAPSULE_DISPENSE";
+  if (progress < phases.open[0]) return "CAPSULE_LAND";
+  if (progress < phases.emerge[0]) return "CAPSULE_OPEN";
+  if (progress < phases.read[0]) return "ARCHIVE_EMERGE";
+  if (progress < phases.close[0]) return "ARCHIVE_READ";
+  if (progress < phases.commit[0]) return "ARCHIVE_CLOSE";
+  if (progress < phases.bridge[0]) return "MEMORY_COMMIT";
   return "NEXT_CHAPTER_BRIDGE";
 }
 
-export function evaluateArchiveNarrative(globalProgress) {
+export function evaluateArchiveNarrative(
+  globalProgress,
+  narrativeMap = NARRATIVE_MAP,
+) {
+  const chapterConfig = narrativeMap.chapters[0];
+  const chapterRanges = chapterConfig.phases;
   const global = clamp01(globalProgress);
-  const entryWeight = ARCHIVE_SCROLL.entryVh / ARCHIVE_SCROLL.totalVh;
+  const entryWeight =
+    narrativeMap.entryLengthVh / narrativeMap.totalLengthVh;
   const inEntry = global < entryWeight;
   const entryProgress = clamp01(global / entryWeight);
   const chapterProgress = inEntry
@@ -83,7 +75,7 @@ export function evaluateArchiveNarrative(globalProgress) {
     : clamp01((global - entryWeight) / (1 - entryWeight));
   const phase = inEntry
     ? phaseFromEntry(entryProgress)
-    : phaseFromChapter(chapterProgress);
+    : phaseFromChapter(chapterProgress, chapterRanges);
 
   const entrance = rangeProgress(
     entryProgress,
@@ -108,28 +100,28 @@ export function evaluateArchiveNarrative(globalProgress) {
 
   const takeover = rangeProgress(
     chapterProgress,
-    ...CHAPTER_ONE_RANGES.takeover,
+    ...chapterRanges.takeover,
   );
   const identify = rangeProgress(
     chapterProgress,
-    ...CHAPTER_ONE_RANGES.identify,
+    ...chapterRanges.identify,
   );
-  const prime = rangeProgress(chapterProgress, ...CHAPTER_ONE_RANGES.prime);
+  const prime = rangeProgress(chapterProgress, ...chapterRanges.prime);
   const activate = rangeProgress(
     chapterProgress,
-    ...CHAPTER_ONE_RANGES.activate,
+    ...chapterRanges.activate,
   );
   const dispense = rangeProgress(
     chapterProgress,
-    ...CHAPTER_ONE_RANGES.dispense,
+    ...chapterRanges.dispense,
   );
-  const land = rangeProgress(chapterProgress, ...CHAPTER_ONE_RANGES.land);
-  const open = rangeProgress(chapterProgress, ...CHAPTER_ONE_RANGES.open);
-  const emerge = rangeProgress(chapterProgress, ...CHAPTER_ONE_RANGES.emerge);
-  const read = rangeProgress(chapterProgress, ...CHAPTER_ONE_RANGES.read);
-  const close = rangeProgress(chapterProgress, ...CHAPTER_ONE_RANGES.close);
-  const commit = rangeProgress(chapterProgress, ...CHAPTER_ONE_RANGES.commit);
-  const bridge = rangeProgress(chapterProgress, ...CHAPTER_ONE_RANGES.bridge);
+  const land = rangeProgress(chapterProgress, ...chapterRanges.land);
+  const open = rangeProgress(chapterProgress, ...chapterRanges.open);
+  const emerge = rangeProgress(chapterProgress, ...chapterRanges.emerge);
+  const read = rangeProgress(chapterProgress, ...chapterRanges.read);
+  const close = rangeProgress(chapterProgress, ...chapterRanges.close);
+  const commit = rangeProgress(chapterProgress, ...chapterRanges.commit);
+  const bridge = rangeProgress(chapterProgress, ...chapterRanges.bridge);
   const archiveVisibility = clamp01(
     (emerge || read || close || commit || bridge) * (1 - close),
   );
@@ -139,6 +131,7 @@ export function evaluateArchiveNarrative(globalProgress) {
     globalProgress: global,
     entryProgress,
     chapterIndex: inEntry ? -1 : 0,
+    chapterId: inEntry ? null : chapterConfig.id,
     chapterProgress,
     phase,
     archivedCount: commit > 0 ? 1 : 0,

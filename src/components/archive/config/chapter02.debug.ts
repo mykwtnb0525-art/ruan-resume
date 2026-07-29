@@ -1,0 +1,117 @@
+import type { ChapterConfig } from "./chapterTypes.ts";
+
+export const chapter02Debug: ChapterConfig = {
+  id: "debug-capsule-02",
+  index: 1,
+  title: "DEBUG CONFIG — NOT A FORMAL CHAPTER",
+  scrollLengthVh: 540,
+  phases: {
+    takeover: [0, 0.1],
+    identify: [0.1, 0.18],
+    prime: [0.18, 0.3],
+    activate: [0.3, 0.42],
+    dispense: [0.42, 0.54],
+    land: [0.54, 0.6],
+    open: [0.6, 0.67],
+    emerge: [0.67, 0.75],
+    read: [0.75, 0.9],
+    close: [0.9, 0.95],
+    commit: [0.95, 0.98],
+    bridge: [0.98, 1],
+  },
+  environment: {
+    palette: ["#777f75", "#59475d", "#c1aa89"],
+    brightness: 0.9,
+    saturation: 0.72,
+    fogDensity: 0.24,
+    residueFromPrevious: 0.24,
+  },
+  machine: {
+    lightSequence: [
+      {
+        target: "statusGreen",
+        progress: "prime",
+        start: 0,
+        duration: 0.35,
+        from: 0.02,
+        to: 0.3,
+      },
+      {
+        target: "chamber",
+        progress: "prime",
+        start: 0.35,
+        duration: 0.65,
+        from: 0.16,
+        to: 0.4,
+        color: "#8fa79b",
+      },
+    ],
+    dialMotion: {
+      direction: "counterclockwise",
+      degrees: 185,
+      resistancePoint: 0.82,
+      reboundDegrees: 4,
+      ease: "power3.inOut",
+    },
+    rotorMotion: {
+      identifyDegrees: -14,
+      activeTurns: -0.85,
+      idleAmplitude: 0.01,
+      idleFrequency: 0.0005,
+      wobbleAmplitude: 0.014,
+      wobbleFrequency: 0.001,
+    },
+    trayMotion: {
+      activationStart: 0.64,
+      doorAngle: 0.9,
+      extension: 0.26,
+    },
+  },
+  capsule: {
+    materialPreset: "debug-smoked-metal",
+    size: 0.72,
+    identifyMotion: {
+      offset: [0.08, 0.06, 0],
+      rotationDeg: [0, -28, 12],
+      duration: 0.8,
+    },
+    releasePath: [
+      [0.32, 3.94, 0.08],
+      [0.58, 3.1, 0.4],
+      [-0.22, 1.52, 1.08],
+      [0.12, 0.52, 1.72],
+    ],
+    landing: {
+      bounces: 2,
+      bounceHeight: 0.026,
+      lateralSlide: -0.052,
+      lift: 0.08,
+      depth: 0.18,
+      finalRotationDeg: [210, -90, 160],
+    },
+    openingType: "four-panel",
+    openingParams: {
+      panelAngles: [34, -34, 48, -48],
+      stagger: 0.08,
+    },
+  },
+  archive: {
+    layoutId: "debug-split-right",
+    anchorMode: "viewport",
+    pieces: [
+      { id: "debug-main", kind: "main", label: "DEBUG ONLY" },
+      { id: "debug-method", kind: "method", label: "CONFIG CAPABILITY TEST" },
+    ],
+    readLengthVh: 81,
+    closeMotion: {
+      type: "scan-collapse",
+      blurPx: 0.4,
+      saturation: 0.55,
+      reconnectToCapsule: false,
+    },
+  },
+  transition: {
+    residueId: "debug-scan-mark",
+    nextPreviewStart: 0.98,
+  },
+};

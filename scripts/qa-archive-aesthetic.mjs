@@ -100,6 +100,7 @@ for (const item of cases) {
   url.searchParams.set("visualMode", item.visualMode);
   await page.goto(url.toString(), { waitUntil: "networkidle" });
   await page.locator("#chapter").waitFor();
+  await page.locator("#chapter").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     return (
       document.querySelector(".archive-canvas")?.dataset.modelStatus ===

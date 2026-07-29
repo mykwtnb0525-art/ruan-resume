@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useRef,
@@ -7,19 +9,36 @@ import {
 import { ArrowDown } from "@phosphor-icons/react";
 import { useArchiveProgress } from "../../hooks/useArchiveProgress.js";
 import { useReducedMotion } from "../../hooks/useReducedMotion.js";
+import { assetUrl } from "../../utils/assetUrl.js";
 import {
   ARCHIVE_SCROLL,
   evaluateArchiveNarrative,
   INITIAL_ARCHIVE_SNAPSHOT,
 } from "./archiveNarrative.js";
 import { ArchiveCanvas } from "./ArchiveCanvas.jsx";
-import { ArchiveDebugPanel } from "./ArchiveDebugPanel.jsx";
+import { ArchiveRenderer } from "./ArchiveRenderer.jsx";
 import { ArchiveHud } from "./ArchiveHud.jsx";
-import { ProjectArchiveReveal } from "./ProjectArchiveReveal.jsx";
+import { chapter01 } from "./config/chapter01.ts";
+import { getEnvironmentRenderConfig } from "./rigs/EnvironmentRig.js";
 import { ReducedMotionArchive } from "./ReducedMotionArchive.jsx";
+import { TransitionResidue } from "./TransitionResidue.jsx";
 import "./archive-sequence.css";
 
-export function ArchiveSequence() {
+const LazyArchiveDebugPanel = import.meta.env.DEV
+  ? lazy(() => import("./ArchiveDebugPanel.jsx").then((module) => ({
+      default: module.ArchiveDebugPanel,
+    })))
+  : null;
+
+const loadDebugChapterConfig = import.meta.env.DEV
+  ? () =>
+      Promise.all([
+        import("./config/chapter02.debug.ts"),
+        import("./config/validateChapterConfig.ts"),
+      ])
+  : null;
+
+export function ArchiveSequence({ embedded = false }) {
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
   const progressRef = useRef(0);
@@ -32,6 +51,12 @@ export function ArchiveSequence() {
   const [archivedCount, setArchivedCount] = useState(0);
   const [displayProgress, setDisplayProgress] = useState(staticMode ? 0.51 : 0);
   const [opened, setOpened] = useState(false);
+  const [debugTestConfig, setDebugTestConfig] = useState(null);
+  const chapterConfig = chapter01;
+  const environmentConfig = getEnvironmentRenderConfig(
+    chapterConfig,
+    compact,
+  );
   const requestedLightingPass =
     typeof window === "undefined"
       ? "final"
@@ -63,8 +88,12 @@ export function ArchiveSequence() {
     ? requestedVisualMode
     : "final";
   const showNarrativeDebug =
+    import.meta.env.DEV &&
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("debugNarrative");
+  const showDebugChapter =
+    showNarrativeDebug &&
+    new URLSearchParams(window.location.search).get("debugChapter") === "2";
   const [muted, setMuted] = useState(() => {
     try {
       return localStorage.getItem("kr-archive-muted") !== "false";
@@ -87,6 +116,23 @@ export function ArchiveSequence() {
     tablet,
     onSnapshotChange: handleSnapshotChange,
   });
+
+  useEffect(() => {
+    if (!showDebugChapter || !loadDebugChapterConfig) return undefined;
+    let cancelled = false;
+    loadDebugChapterConfig().then(
+      ([debugModule, validatorModule]) => {
+        validatorModule.validateChapterRegistry([
+          chapterConfig,
+          debugModule.chapter02Debug,
+        ]);
+        if (!cancelled) setDebugTestConfig(debugModule.chapter02Debug);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [chapterConfig, showDebugChapter]);
 
   useEffect(() => {
     if (!staticMode) return undefined;
@@ -151,16 +197,19 @@ export function ArchiveSequence() {
   const debugSnapshot = showNarrativeDebug
     ? evaluateArchiveNarrative(displayProgress)
     : null;
+  const Root = embedded ? "div" : "section";
 
   return (
-    <section
+    <Root
       ref={sectionRef}
       className={`archive-sequence ${staticMode ? "is-static" : ""}`}
-      id="chapter"
+      id={embedded ? undefined : "chapter"}
       data-phase={phase}
+      data-chapter={chapterConfig.id}
       data-lighting-pass={lightingPass}
       data-visual-mode={visualMode}
       aria-labelledby="archive-sequence-title"
+      style={environmentConfig.cssVariables}
     >
       <div ref={stageRef} className="archive-sequence__stage">
         <ArchiveCanvas
@@ -169,12 +218,15 @@ export function ArchiveSequence() {
           compact={compact}
           lightingPass={lightingPass}
           visualMode={visualMode}
+          chapterConfig={chapterConfig}
         />
         <div
           className="archive-sequence__atmosphere"
           aria-hidden="true"
           style={{
-            backgroundImage: `url("${import.meta.env.BASE_URL}assets/archive-dream-corridor.png")`,
+            backgroundImage: `url("${assetUrl(
+              "assets/archive-dream-corridor.png",
+            )}")`,
           }}
         />
         <div className="archive-sequence__portal-depth" aria-hidden="true" />
@@ -182,34 +234,36 @@ export function ArchiveSequence() {
           className="archive-sequence__collage-field"
           aria-hidden="true"
           style={{
-            backgroundImage: `url("${import.meta.env.BASE_URL}assets/archive-dream-corridor.png")`,
+            backgroundImage: `url("${assetUrl(
+              "assets/archive-dream-corridor.png",
+            )}")`,
           }}
         />
         <div className="archive-sequence__memory-fragments" aria-hidden="true">
           <figure className="archive-memory archive-memory--portrait">
             <img
-              src={`${import.meta.env.BASE_URL}assets/kaicheng-portrait.png`}
+              src={assetUrl("assets/kaicheng-portrait.png")}
               alt=""
             />
             <figcaption>MEMORY / 01</figcaption>
           </figure>
           <figure className="archive-memory archive-memory--mist">
             <img
-              src={`${import.meta.env.BASE_URL}assets/project-mist.png`}
+              src={assetUrl("assets/project-mist.png")}
               alt=""
             />
             <figcaption>FRAME / LOST</figcaption>
           </figure>
           <figure className="archive-memory archive-memory--time">
             <img
-              src={`${import.meta.env.BASE_URL}assets/project-time.png`}
+              src={assetUrl("assets/project-time.png")}
               alt=""
             />
             <figcaption>TIME / REMAINS</figcaption>
           </figure>
           <figure className="archive-memory archive-memory--dayu">
             <img
-              src={`${import.meta.env.BASE_URL}assets/project-dayu.png`}
+              src={assetUrl("assets/project-dayu.png")}
               alt=""
             />
             <figcaption>ARCHIVE / FILM</figcaption>
@@ -236,6 +290,7 @@ export function ArchiveSequence() {
           archivedCount={archivedCount}
           muted={muted}
           onToggleMuted={() => setMuted((value) => !value)}
+          chapterConfig={chapterConfig}
         />
 
         <div className="archive-sequence__entrance section-shell">
@@ -269,7 +324,7 @@ export function ArchiveSequence() {
 
           <figure className="archive-sequence__object">
             <img
-              src="/ruan-resume/assets/retro-car.png"
+              src={assetUrl("assets/retro-car.png")}
               alt="红色丝绒上的复古绿色玩具汽车"
             />
             <figcaption>
@@ -296,9 +351,18 @@ export function ArchiveSequence() {
           aria-hidden="true"
         />
 
-        <ProjectArchiveReveal active={archiveActive} />
-        {showNarrativeDebug ? (
-          <ArchiveDebugPanel snapshot={debugSnapshot} />
+        <ArchiveRenderer active={archiveActive} config={chapterConfig} />
+        <TransitionResidue
+          config={chapterConfig}
+          active={phase === "NEXT_CHAPTER_BRIDGE"}
+        />
+        {showNarrativeDebug && LazyArchiveDebugPanel ? (
+          <Suspense fallback={null}>
+            <LazyArchiveDebugPanel
+              snapshot={debugSnapshot}
+              testConfig={debugTestConfig}
+            />
+          </Suspense>
         ) : null}
 
         {staticMode ? (
@@ -328,6 +392,6 @@ export function ArchiveSequence() {
           <b>PRESS / SCROLL TO CONTINUE</b>
         </div>
       </div>
-    </section>
+    </Root>
   );
 }

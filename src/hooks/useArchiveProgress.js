@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-  ARCHIVE_SCROLL,
+  NARRATIVE_MAP,
   evaluateArchiveNarrative,
 } from "../components/archive/archiveNarrative.js";
 
@@ -18,6 +18,7 @@ export function useArchiveProgress({
   disabled,
   tablet,
   onSnapshotChange,
+  narrativeMap = NARRATIVE_MAP,
 }) {
   const triggerRef = useRef(null);
   const phaseRef = useRef("KEY_IDLE");
@@ -27,31 +28,42 @@ export function useArchiveProgress({
     const section = sectionRef.current;
     const stage = stageRef.current;
     if (!section || !stage || disabled) return undefined;
+    const host = section.closest("#chapter") || section;
+    const setDataset = (key, value) => {
+      section.dataset[key] = value;
+      if (host !== section) host.dataset[key] = value;
+    };
+    setDataset("phase", phaseRef.current);
+    setDataset("progress", progressRef.current.toFixed(4));
+    setDataset("chapterProgress", "0.0000");
+    setDataset("archived", String(archivedCountRef.current));
 
     const context = gsap.context(() => {
       triggerRef.current = ScrollTrigger.create({
         trigger: section,
         start: "top top",
         end: () =>
-          `+=${window.innerHeight * (tablet ? 9.4 : ARCHIVE_SCROLL.totalVh / 100)}`,
+          `+=${window.innerHeight * (tablet ? 9.4 : narrativeMap.totalLengthVh / 100)}`,
         pin: stage,
         pinSpacing: true,
         scrub: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onRefresh: (self) => {
-          section.dataset.archiveStart = String(self.start);
-          section.dataset.archiveEnd = String(self.end);
+          setDataset("archiveStart", String(self.start));
+          setDataset("archiveEnd", String(self.end));
         },
         onUpdate: (self) => {
           const progress = self.progress;
-          const snapshot = evaluateArchiveNarrative(progress);
+          const snapshot = evaluateArchiveNarrative(progress, narrativeMap);
           progressRef.current = progress;
           snapshotRef.current = snapshot;
-          section.dataset.progress = progress.toFixed(4);
-          section.dataset.chapterProgress =
-            snapshot.chapterProgress.toFixed(4);
-          section.dataset.archived = String(snapshot.archivedCount);
+          setDataset("progress", progress.toFixed(4));
+          setDataset(
+            "chapterProgress",
+            snapshot.chapterProgress.toFixed(4),
+          );
+          setDataset("archived", String(snapshot.archivedCount));
 
           section.style.setProperty("--archive-progress", progress.toFixed(4));
           section.style.setProperty(
@@ -140,7 +152,7 @@ export function useArchiveProgress({
           if (snapshotChanged) {
             phaseRef.current = snapshot.phase;
             archivedCountRef.current = snapshot.archivedCount;
-            section.dataset.phase = snapshot.phase;
+            setDataset("phase", snapshot.phase);
             onSnapshotChange(snapshot);
           }
         },
@@ -209,6 +221,7 @@ export function useArchiveProgress({
   }, [
     disabled,
     onSnapshotChange,
+    narrativeMap,
     progressRef,
     sectionRef,
     snapshotRef,

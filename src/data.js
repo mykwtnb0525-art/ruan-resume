@@ -1,3 +1,5 @@
+import { assetUrl } from "./utils/assetUrl.js";
+
 export const profile = {
   name: "阮凯城",
   englishName: "Kaicheng RUAN",
@@ -21,7 +23,7 @@ export const projects = [
     year: "2026 · 制作中",
     role: "视效总监",
     type: "AI FILM / VFX SUPERVISION",
-    image: "/ruan-resume/assets/project-dayu.png",
+    image: assetUrl("assets/project-dayu.png"),
     description:
       "负责全片视效策略与制作流程设计，覆盖影片 80% 以上视效镜头；组建并协调 20 人视效团队，统筹画面质量、效率与制作节点；主导核心镜头的 AI 制作与参数优化，将单镜头制作效率提升约 40%。",
     metrics: ["80%+ 视效镜头覆盖", "20 人协同团队", "40% 效率提升"],
@@ -35,7 +37,7 @@ export const projects = [
     role: "AI 工程本地部署 / AIGC 视觉制作",
     type: "REALISTIC AI SERIES / WORKFLOW",
     award: "入围腾讯视频首届 AI 短片创作大赛",
-    image: "/ruan-resume/assets/project-mist.png",
+    image: assetUrl("assets/project-mist.png"),
     description:
       "搭建 Stable Diffusion 与 ComfyUI 本地工作流，优化模型推理、显存分配和写实影像参数；根据剧情建立提示词体系，完成场景、道具、氛围与人物一致性设计。",
     metrics: ["Stable Diffusion", "ComfyUI", "人物一致性"],
@@ -48,7 +50,7 @@ export const projects = [
     year: "2025",
     role: "导演 / 制作",
     type: "AIGC MUSIC VIDEO",
-    image: "/ruan-resume/assets/project-time.png",
+    image: assetUrl("assets/project-time.png"),
     description:
       "参与项目全流程管理，协调创意、生图与剪辑团队，从概念、脚本、视觉设定推进至最终成片，并负责版权合规和平台审核适配。",
     metrics: ["创意统筹", "视觉设定", "最终成片"],
@@ -62,7 +64,7 @@ export const projects = [
     role: "导演 / 策划 / AIGC 视觉制作",
     type: "COMMERCIAL / AIGC",
     client: "北京农业银行",
-    image: "/ruan-resume/assets/project-abc.png",
+    image: assetUrl("assets/project-abc.png"),
     description:
       "主导整体创意、叙事方向和视觉风格，利用生成式图像技术重新构建传统贺岁题材，在制作效率与视觉创新之间建立平衡。",
     metrics: ["导演策划", "传统再构", "商业交付"],
@@ -75,7 +77,7 @@ export const projects = [
     year: "2026",
     role: "导演 / 策划 / AIGC 视觉制作",
     type: "LIVE SHOW / VIRTUAL VISUAL",
-    image: "/ruan-resume/assets/project-gala.png",
+    image: assetUrl("assets/project-gala.png"),
     description:
       "负责重庆与四川网络春晚多个 AIGC 节目的视觉内容制作与跨环节衔接，协调节目视觉需求、制作流程和交付进度，保障视觉板块统一呈现。",
     metrics: ["多节目协同", "场景衔接", "线上晚会"],
@@ -88,7 +90,7 @@ export const projects = [
     year: "2026",
     role: "AIGC 全案制作",
     type: "GLOBAL SHORT DRAMA",
-    image: "/ruan-resume/assets/project-tiktok.png",
+    image: assetUrl("assets/project-tiktok.png"),
     description:
       "负责镜头视觉设计、场景生成、风格控制与成片输出，并根据海外内容环境调整视觉表达和本土化呈现。",
     metrics: ["视觉全案", "风格控制", "海外适配"],

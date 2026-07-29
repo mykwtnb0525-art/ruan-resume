@@ -60,8 +60,61 @@ export function ArchiveHud({
   archivedCount,
   muted,
   onToggleMuted,
+  chapterConfig,
 }) {
-  const status = STATUS[phase] || STATUS.KEY_IDLE;
+  const currentIndex = String(chapterConfig.index + 1).padStart(2, "0");
+  const nextIndex = String(chapterConfig.index + 2).padStart(2, "0");
+  const dialDirection =
+    chapterConfig.machine.dialMotion.direction === "clockwise" ? "+" : "−";
+  const configuredStatus = {
+    ...STATUS,
+    MACHINE_AWAKE: [
+      "ARCHIVE CORE ONLINE",
+      `${currentIndex} / 06 READY`,
+      "AWAITING INPUT",
+    ],
+    ENVIRONMENT_TAKEOVER: [
+      `CAPSULE ${currentIndex}`,
+      "ECO-FUTURE SIGNAL",
+      "PROJECT READY",
+    ],
+    CAPSULE_IDENTIFY: [
+      "TARGET CAPSULE FOUND",
+      "SIGNATURE VERIFIED",
+      `${currentIndex} / 06`,
+    ],
+    MACHINE_ACTIVATE: [
+      `DIAL / ${dialDirection}${chapterConfig.machine.dialMotion.degrees}°`,
+      "ROTATION ACTIVE",
+      "CAPSULE SELECTED",
+    ],
+    CAPSULE_DISPENSE: [
+      "OUTPUT CHANNEL ACTIVE",
+      "CAPSULE IN TRANSIT",
+      `${currentIndex} / 06`,
+    ],
+    ARCHIVE_EMERGE: [
+      `PROJECT ARCHIVE ${currentIndex}`,
+      "MEMORY UNSEALED",
+      "READ ACCESS",
+    ],
+    ARCHIVE_READ: [
+      `PROJECT ARCHIVE ${currentIndex}`,
+      "DIRECTOR / PRODUCTION",
+      "READ ACCESS",
+    ],
+    MEMORY_COMMIT: [
+      `${currentIndex} / 06 ARCHIVED`,
+      "CAPSULE COMMITTED",
+      "SYSTEM STABLE",
+    ],
+    NEXT_CHAPTER_BRIDGE: [
+      "ARCHIVE CORE ONLINE",
+      `${nextIndex} / 06 READY`,
+      "AWAITING INPUT",
+    ],
+  };
+  const status = configuredStatus[phase] || configuredStatus.KEY_IDLE;
 
   return (
     <div className="archive-hud" aria-live="polite">

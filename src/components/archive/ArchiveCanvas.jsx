@@ -9,37 +9,16 @@ import {
   bindGashaponGLTF,
   createGashaponMachine,
 } from "./GashaponMachine.js";
+import {
+  applyCapsuleRig,
+  createCapsuleReleasePath,
+} from "./rigs/CapsuleRig.js";
+import { getEnvironmentRenderConfig } from "./rigs/EnvironmentRig.js";
+import { applyLightingRig } from "./rigs/LightingRig.js";
+import { applyMachineRig, easeInOut } from "./rigs/MachineRig.js";
 import { disposeObject } from "./threeUtils.js";
 
-const easeInOut = (value) =>
-  value < 0.5 ? 2 * value * value : 1 - Math.pow(-2 * value + 2, 2) / 2;
-
 const lerp = (start, end, progress) => start + (end - start) * progress;
-
-const capsulePathPoints = [
-  new THREE.Vector3(-0.36, 4.02, 0.05),
-  new THREE.Vector3(-0.3, 3.25, 0.28),
-  new THREE.Vector3(0.12, 1.45, 1.18),
-  new THREE.Vector3(0, 0.5, 1.72),
-];
-
-function cubicBezier(points, progress, target) {
-  const [p0, p1, p2, p3] = points;
-  const inverse = 1 - progress;
-  target
-    .copy(p0)
-    .multiplyScalar(inverse ** 3)
-    .addScaledVector(p1, 3 * inverse ** 2 * progress)
-    .addScaledVector(p2, 3 * inverse * progress ** 2)
-    .addScaledVector(p3, progress ** 3);
-}
-
-function dialAngle(progress) {
-  if (progress <= 0.88) {
-    return easeInOut(progress / 0.88) * 230;
-  }
-  return 230 - easeInOut((progress - 0.88) / 0.12) * 6;
-}
 
 function createContactShadowTexture() {
   const canvas = document.createElement("canvas");
@@ -100,6 +79,7 @@ export function ArchiveCanvas({
   compact = false,
   lightingPass = "final",
   visualMode = "final",
+  chapterConfig,
 }) {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -181,12 +161,22 @@ export function ArchiveCanvas({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const scene = new THREE.Scene();
+    const environmentConfig = getEnvironmentRenderConfig(
+      chapterConfig,
+      compact,
+    );
     const hasEnvironment = lightingPass !== "base";
     const hasGround = ["ground", "atmosphere", "final"].includes(lightingPass);
     const hasAtmosphere = ["atmosphere", "final"].includes(lightingPass);
-    scene.environmentIntensity = hasEnvironment ? 0.62 : 0;
+    scene.environmentIntensity = hasEnvironment
+      ? environmentConfig.environmentIntensity
+      : 0;
     if (hasAtmosphere) {
-      scene.fog = new THREE.Fog(0x49342e, compact ? 6.8 : 7.4, compact ? 13 : 15.5);
+      scene.fog = new THREE.Fog(
+        0x49342e,
+        environmentConfig.fogNear,
+        environmentConfig.fogFar,
+      );
     }
     let environmentTarget = null;
     if (hasEnvironment) {
@@ -212,7 +202,7 @@ export function ArchiveCanvas({
     world.add(tunnel.group);
     tunnel.group.visible = !backgroundOnlyMode;
 
-    let machine = createGashaponMachine(ARCHIVE_CONFIG);
+    let machine = createGashaponMachine(ARCHIVE_CONFIG, chapterConfig);
     world.add(machine.group);
     machine.group.visible = !backgroundOnlyMode;
     canvas.dataset.model = "procedural-loading";
@@ -226,7 +216,11 @@ export function ArchiveCanvas({
             disposeObject(gltf.scene);
             return;
           }
-          const loadedMachine = bindGashaponGLTF(gltf.scene, ARCHIVE_CONFIG);
+          const loadedMachine = bindGashaponGLTF(
+            gltf.scene,
+            ARCHIVE_CONFIG,
+            chapterConfig,
+          );
           world.remove(machine.group);
           disposeObject(machine.group);
           machine = loadedMachine;
@@ -334,6 +328,7 @@ export function ArchiveCanvas({
     const target = new THREE.Vector3(...ARCHIVE_CONFIG.camera.target);
     const cameraTarget = target.clone();
     const capsulePosition = new THREE.Vector3();
+    const capsuleReleasePath = createCapsuleReleasePath(chapterConfig);
     const capsuleAnchorWorld = new THREE.Vector3();
     const capsuleAnchorScreen = new THREE.Vector3();
     const idleCamera = ARCHIVE_CONFIG.camera.idle;
@@ -445,111 +440,26 @@ export function ArchiveCanvas({
       tunnel.setProgress({ collage, travel, arrival });
       tunnel.fragments.rotation.z = Math.sin(progress * Math.PI * 2) * 0.02;
 
-      const bootPower = easeInOut(chapter.prime);
-      const chamberPulse =
-        0.15 + easeInOut(chapter.prime) * 0.27;
-      const trayPower = easeInOut(
-        Math.min(1, Math.max(0, (chapter.prime - 0.48) / 0.52)),
-      );
-      machine.materials.ivory.emissiveIntensity = 0.035 + bootPower * 0.1;
-      machine.materials.wine.emissiveIntensity = 0.05 + bootPower * 0.18;
-      machine.materials.glass.transmission = 0.85 + bootPower * 0.03;
-      machine.materials.baseStatus.emissiveIntensity = 0.08 + bootPower * 0.5;
-      machine.materials.trayScan.emissiveIntensity = 0.04 + trayPower * 0.24;
-      machine.materials.statusMaterials.forEach((material, index) => {
-        const staged = Math.min(
-          1,
-          Math.max(0, (chapter.prime - index * 0.18) / 0.46),
-        );
-        material.emissiveIntensity = 0.035 + staged * 0.32;
+      applyLightingRig({
+        machine,
+        chapter,
+        config: chapterConfig,
+        lightingEnabled: lightingPass !== "base",
       });
-      machine.lights.chamberLight.color.set(ARCHIVE_CONFIG.colors.violet);
-      machine.lights.chamberLight.intensity =
-        lightingPass === "base"
-          ? 0
-          : 0.22 + bootPower * 0.18 + chapter.identify * 0.06;
-      machine.lights.trayLight.intensity =
-        lightingPass === "base" ? 0 : 0.08 + trayPower * 0.22;
-
-      machine.handle.rotation.z = THREE.MathUtils.degToRad(
-        -dialAngle(chapter.activate),
-      );
-      const bayProgress = easeInOut(
-        Math.max(
-          chapter.dispense,
-          Math.min(1, Math.max(0, (chapter.activate - 0.72) / 0.28)),
-        ),
-      );
-      machine.outputBay.doorPivot.rotation.x = -bayProgress * 1.05;
-      const closedTrayZ =
-        machine.outputBay.trayGroup.userData.closedZ ??
-        machine.outputBay.trayGroup.position.z;
-      machine.outputBay.trayGroup.position.z = closedTrayZ + bayProgress * 0.2;
-      machine.capsules.rotation.y =
-        chapter.identify * 0.35 +
-        chapter.activate * Math.PI * 1.28 +
-        Math.sin(now * 0.00042) * 0.018 * (1 - chapter.dispense);
-      machine.capsules.rotation.z =
-        Math.sin(now * 0.0012) * 0.024 * Math.max(chapter.identify, bootPower);
-
-      const capsuleVisible =
-        chapter.identify > 0 &&
-        chapter.commit < 1;
-      machine.capsule.group.visible = capsuleVisible;
-      if (capsuleVisible) {
-        if (dispense > 0) {
-          cubicBezier(capsulePathPoints, easeInOut(dispense), capsulePosition);
-        } else {
-          capsulePosition.copy(capsulePathPoints[0]);
-          capsulePosition.x += Math.sin(now * 0.0011) * 0.02 * chapter.identify;
-          capsulePosition.y +=
-            chapter.identify * 0.11 + Math.sin(now * 0.0016) * 0.01;
-        }
-        if (chapter.land > 0 && chapter.land < 1) {
-          capsulePosition.y += Math.sin(chapter.land * Math.PI) * 0.038;
-          capsulePosition.x += chapter.land * 0.075;
-        } else if (chapter.land >= 1) {
-          capsulePosition.x += 0.075;
-        }
-        capsulePosition.y += chapter.land * 0.1;
-        capsulePosition.z += chapter.land * 0.2;
-        machine.capsule.group.position.copy(capsulePosition);
-        machine.capsule.group.rotation.set(
-          dispense * Math.PI * 1.45,
-          chapter.identify * THREE.MathUtils.degToRad(35) +
-            dispense * Math.PI * 0.72,
-          dispense * Math.PI * 1.1,
-        );
-      }
-
-      const capsuleOpen = easeInOut(chapter.capsuleOpen);
-      const capsuleEmphasis = Math.max(
-        chapter.identify,
-        chapter.dispense,
-        chapter.open,
-      );
-      machine.capsule.top.material.emissiveIntensity =
-        0.12 + capsuleEmphasis * 0.34;
-      machine.capsule.bottom.material.emissiveIntensity =
-        0.1 + capsuleEmphasis * 0.26;
-      machine.capsule.top.position.y = capsuleOpen * 0.43;
-      machine.capsule.bottom.position.y = -capsuleOpen * 0.12;
-      machine.capsule.top.rotation.x = -capsuleOpen * 0.78;
-      machine.capsule.top.rotation.z = capsuleOpen * 0.34;
-      machine.capsule.bottom.rotation.x = capsuleOpen * 0.22;
-      machine.capsule.bottom.rotation.z = -capsuleOpen * 0.2;
-      machine.capsule.seam.material.opacity = 0.9 * (1 - capsuleOpen);
-      machine.capsule.seam.material.transparent = capsuleOpen > 0;
-      if (machine.capsule.membrane) {
-        machine.capsule.membrane.left.position.x = -capsuleOpen * 0.15;
-        machine.capsule.membrane.right.position.x = capsuleOpen * 0.15;
-        machine.capsule.membrane.left.rotation.z = capsuleOpen * 0.49;
-        machine.capsule.membrane.right.rotation.z = -capsuleOpen * 0.49;
-        machine.capsule.membrane.left.material.opacity =
-          0.22 * (1 - chapter.open * 0.7);
-        machine.capsule.membrane.right.material.opacity =
-          0.22 * (1 - chapter.open * 0.7);
-      }
+      applyMachineRig({
+        machine,
+        chapter,
+        now,
+        config: chapterConfig,
+      });
+      const { capsuleOpen } = applyCapsuleRig({
+        machine,
+        chapter,
+        now,
+        config: chapterConfig,
+        releasePath: capsuleReleasePath,
+        position: capsulePosition,
+      });
 
       machine.capsule.group.updateWorldMatrix(true, false);
       machine.capsule.group.getWorldPosition(capsuleAnchorWorld);
@@ -600,7 +510,14 @@ export function ArchiveCanvas({
       renderer.dispose();
       renderer.forceContextLoss();
     };
-  }, [compact, lightingPass, snapshotRef, staticMode, visualMode]);
+  }, [
+    chapterConfig,
+    compact,
+    lightingPass,
+    snapshotRef,
+    staticMode,
+    visualMode,
+  ]);
 
   return (
     <div className="archive-canvas-shell">

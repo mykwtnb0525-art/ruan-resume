@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "vite --configLoader runner --host 0.0.0.0",
     "build": "vite build --configLoader runner && node scripts/prepare-sites-build.mjs",
+    "build:analyze": "node scripts/analyze-build.mjs",
+    "config:validate": "node scripts/validate-archive-config.mjs",
+    "qa:compare-archive": "node scripts/compare-archive-baseline.mjs",
+    "qa:archive-loading": "node scripts/qa-archive-loading.mjs",
     "model:archive": "node scripts/export-archive-gashapon.mjs",
     "model:validate": "node scripts/validate-archive-gashapon.mjs",
     "preview": "vite preview",

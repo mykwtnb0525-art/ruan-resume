@@ -26,6 +26,7 @@ await page.goto(baseUrl, {
   waitUntil: "networkidle",
 });
 await page.locator("#chapter").waitFor();
+await page.locator("#chapter").scrollIntoViewIfNeeded();
 await page.waitForFunction(() => {
   const status = document.querySelector(".archive-canvas")?.dataset.modelStatus;
   return status && status !== "loading";
@@ -56,16 +57,38 @@ async function seekArchive(progress, timeout = 6000) {
     },
     { range, progress },
   );
-  await page.waitForFunction(
-    (target) => {
-      const actual = Number(
-        document.querySelector("#chapter")?.dataset.progress || -1,
-      );
-      return Math.abs(actual - target) < 0.012;
-    },
-    progress,
-    { timeout },
-  );
+  try {
+    await page.waitForFunction(
+      (target) => {
+        const actual = Number(
+          document.querySelector("#chapter")?.dataset.progress || -1,
+        );
+        return Math.abs(actual - target) < 0.012;
+      },
+      progress,
+      { timeout },
+    );
+  } catch (error) {
+    const runtime = await page.locator("#chapter").evaluate(
+      (element, target) => ({
+        target,
+        actual: element.dataset.progress,
+        start: element.dataset.archiveStart,
+        end: element.dataset.archiveEnd,
+        scrollY: window.scrollY,
+        innerProgress:
+          element.querySelector(".archive-sequence")?.dataset.progress,
+        innerStart:
+          element.querySelector(".archive-sequence")?.dataset.archiveStart,
+        innerEnd:
+          element.querySelector(".archive-sequence")?.dataset.archiveEnd,
+      }),
+      progress,
+    );
+    throw new Error(
+      `${error.message}\nArchive runtime: ${JSON.stringify(runtime)}`,
+    );
+  }
   await page.waitForTimeout(180);
 }
 
@@ -149,6 +172,40 @@ const rapidState = await page.locator("#chapter").evaluate((element) => {
   };
 });
 
+await seekArchive(0.756);
+const dropBeforePause = await page.locator("#chapter").evaluate((element) => {
+  const canvas = element.querySelector(".archive-canvas");
+  return {
+    phase: element.dataset.phase,
+    progress: Number(element.dataset.progress),
+    capsule: Number(canvas?.dataset.capsule),
+    capsuleOpen: Number(canvas?.dataset.capsuleOpen),
+  };
+});
+await page.waitForTimeout(700);
+const dropAfterPause = await page.locator("#chapter").evaluate((element) => {
+  const canvas = element.querySelector(".archive-canvas");
+  return {
+    phase: element.dataset.phase,
+    progress: Number(element.dataset.progress),
+    capsule: Number(canvas?.dataset.capsule),
+    capsuleOpen: Number(canvas?.dataset.capsuleOpen),
+  };
+});
+
+await seekArchive(0.84);
+await seekArchive(0.814);
+const emergeReverseState = await page
+  .locator("#chapter")
+  .evaluate((element) => ({
+    phase: element.dataset.phase,
+    progress: Number(element.dataset.progress),
+    activeArchives: [...element.querySelectorAll(".project-archive-reveal")]
+      .filter((archive) => getComputedStyle(archive).visibility === "visible")
+      .length,
+    canvasCount: element.querySelectorAll(".archive-canvas").length,
+  }));
+
 await seekArchive(0.84);
 const refreshScrollY = await page.evaluate(() => window.scrollY);
 await page.reload({ waitUntil: "networkidle" });
@@ -207,6 +264,9 @@ const result = {
   states,
   reverseStates,
   rapidState,
+  dropBeforePause,
+  dropAfterPause,
+  emergeReverseState,
   refreshState,
   phasesCorrect: states.every((state, index) => state.phase === expected[index]),
   reversePhasesCorrect: reverseStates.every(
@@ -225,6 +285,16 @@ const result = {
     rapidState.capsule > 0.9 &&
     rapidState.capsuleOpen > 0.9 &&
     rapidState.activeArchives === 1,
+  dropPauseStable:
+    dropBeforePause.phase === "CAPSULE_DISPENSE" &&
+    dropAfterPause.phase === "CAPSULE_DISPENSE" &&
+    Math.abs(dropBeforePause.progress - dropAfterPause.progress) < 0.002 &&
+    Math.abs(dropBeforePause.capsule - dropAfterPause.capsule) < 0.002 &&
+    dropAfterPause.capsuleOpen === 0,
+  emergeReverseCorrect:
+    emergeReverseState.phase === "CAPSULE_OPEN" &&
+    emergeReverseState.activeArchives === 0 &&
+    emergeReverseState.canvasCount === 1,
   cameraAdvanced: states[2].cameraZ < states[0].cameraZ,
   machineBooted: states[5].boot > 0.4,
   capsuleDispensed: states[6].capsule > 0.4,
@@ -249,6 +319,8 @@ if (
   !result.phasesCorrect ||
   !result.reversePhasesCorrect ||
   !result.rapidSeekCorrect ||
+  !result.dropPauseStable ||
+  !result.emergeReverseCorrect ||
   !result.cameraAdvanced ||
   !result.machineBooted ||
   !result.capsuleDispensed ||

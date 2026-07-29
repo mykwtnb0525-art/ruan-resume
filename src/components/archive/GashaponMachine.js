@@ -8,9 +8,13 @@ import { createMachineLights } from "./machine/MachineLights.js";
 import { createMachineMaterials } from "./machine/machineConfig.js";
 import { createMechanicalDial } from "./machine/MechanicalDial.js";
 import { createOutputBay } from "./machine/OutputBay.js";
+import {
+  applyCapsuleMaterialPreset,
+  createOpeningRig,
+} from "./rigs/CapsuleRig.js";
 import { createTextTexture } from "./threeUtils.js";
 
-export function createGashaponMachine(config) {
+export function createGashaponMachine(config, chapterConfig) {
   const group = new THREE.Group();
   group.name = "ArchiveGashaponMachine";
   group.position.fromArray(config.machine.position);
@@ -29,7 +33,9 @@ export function createGashaponMachine(config) {
   const lights = createMachineLights();
 
   const capsule = createCapsuleSystem();
-  capsule.group.scale.setScalar(0.78);
+  applyCapsuleMaterialPreset(capsule, chapterConfig);
+  capsule.membrane = createOpeningRig(capsule, chapterConfig);
+  capsule.group.scale.setScalar(chapterConfig.capsule.size);
   group.add(capsule.group);
 
   group.add(
@@ -168,96 +174,7 @@ function tuneFormalMachineMaterials(group) {
   });
 }
 
-function createCapsuleOneMembrane(capsule) {
-  if (!capsule?.group) return null;
-  const material = new THREE.MeshPhysicalMaterial({
-    color: 0xb9b6c9,
-    emissive: 0x9c85bc,
-    emissiveIntensity: 0.08,
-    transparent: true,
-    opacity: 0.2,
-    roughness: 0.2,
-    metalness: 0.02,
-    transmission: 0.62,
-    ior: 1.4,
-    thickness: 0.07,
-    envMapIntensity: 0.85,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  });
-  const left = new THREE.Mesh(
-    new THREE.SphereGeometry(
-      0.36,
-      24,
-      14,
-      Math.PI / 2,
-      Math.PI,
-      0,
-      Math.PI,
-    ),
-    material,
-  );
-  const right = new THREE.Mesh(
-    new THREE.SphereGeometry(
-      0.36,
-      24,
-      14,
-      -Math.PI / 2,
-      Math.PI,
-      0,
-      Math.PI,
-    ),
-    material.clone(),
-  );
-  left.name = "OutputCapsuleMembraneLeft";
-  right.name = "OutputCapsuleMembraneRight";
-  capsule.group.add(left, right);
-  return { left, right };
-}
-
-function applyCapsuleOneMaterial(capsule) {
-  if (!capsule?.top || !capsule?.bottom || !capsule?.seam) return;
-  capsule.top.material = new THREE.MeshPhysicalMaterial({
-    name: "Capsule01FadedSage",
-    color: 0x91a79e,
-    emissive: 0x9c85bc,
-    emissiveIntensity: 0.12,
-    transparent: true,
-    opacity: 1,
-    roughness: 0.2,
-    metalness: 0.04,
-    transmission: 0.64,
-    ior: 1.4,
-    thickness: 0.08,
-    envMapIntensity: 0.85,
-  });
-  capsule.bottom.material = new THREE.MeshPhysicalMaterial({
-    name: "Capsule01FadedRose",
-    color: 0xc2a8b6,
-    emissive: 0x79698f,
-    emissiveIntensity: 0.1,
-    transparent: true,
-    opacity: 1,
-    roughness: 0.2,
-    metalness: 0.04,
-    transmission: 0.62,
-    ior: 1.4,
-    thickness: 0.08,
-    envMapIntensity: 0.85,
-  });
-  capsule.seam.material = new THREE.MeshStandardMaterial({
-    name: "Capsule01OxidizedSilver",
-    color: 0xb6b1a8,
-    emissive: 0x9c85bc,
-    emissiveIntensity: 0.08,
-    transparent: true,
-    opacity: 0.9,
-    roughness: 0.36,
-    metalness: 0.5,
-  });
-}
-
-export function bindGashaponGLTF(root, config) {
+export function bindGashaponGLTF(root, config, chapterConfig) {
   const group =
     root.getObjectByName("ArchiveGashaponMachine") ||
     root.getObjectByName("KR_MemoryArchive_Gashapon") ||
@@ -301,8 +218,9 @@ export function bindGashaponGLTF(root, config) {
     bottom: group.getObjectByName("OutputCapsuleBottom"),
     seam: group.getObjectByName("OutputCapsuleSeam"),
   };
-  applyCapsuleOneMaterial(capsule);
-  capsule.membrane = createCapsuleOneMembrane(capsule);
+  applyCapsuleMaterialPreset(capsule, chapterConfig);
+  capsule.membrane = createOpeningRig(capsule, chapterConfig);
+  capsule.group.scale.setScalar(chapterConfig.capsule.size);
   capsule.group.visible = false;
   const outputBay = {
     doorPivot: group.getObjectByName("OutputDoorPivot"),
