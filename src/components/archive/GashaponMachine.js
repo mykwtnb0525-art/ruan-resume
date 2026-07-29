@@ -29,7 +29,7 @@ export function createGashaponMachine(config) {
   const lights = createMachineLights();
 
   const capsule = createCapsuleSystem();
-  capsule.group.scale.setScalar(0.88);
+  capsule.group.scale.setScalar(0.78);
   group.add(capsule.group);
 
   group.add(
@@ -81,6 +81,182 @@ function materialByName(root, name) {
   return match;
 }
 
+function tuneFormalMachineMaterials(group) {
+  const palette = {
+    MachineIvory: {
+      color: 0xc0ae96,
+      env: 0.68,
+      roughness: 0.53,
+      metalness: 0.09,
+    },
+    MachineIvoryDark: {
+      color: 0x9d8873,
+      env: 0.58,
+      roughness: 0.61,
+      metalness: 0.08,
+    },
+    MachineGreen: {
+      color: 0x4b6358,
+      env: 0.75,
+      roughness: 0.45,
+      metalness: 0.14,
+    },
+    MachineGreenDark: {
+      color: 0x30493f,
+      env: 0.62,
+      roughness: 0.54,
+      metalness: 0.14,
+    },
+    MachineWine: {
+      color: 0x61333b,
+      env: 0.66,
+      roughness: 0.52,
+      metalness: 0.16,
+    },
+    MachineBrass: {
+      color: 0x8d6a42,
+      env: 1.02,
+      roughness: 0.3,
+      metalness: 0.9,
+    },
+    MachineSteel: {
+      color: 0x655f59,
+      env: 0.82,
+      roughness: 0.36,
+      metalness: 0.78,
+    },
+    MachineDarkMetal: {
+      color: 0x292522,
+      env: 0.72,
+      roughness: 0.39,
+      metalness: 0.72,
+    },
+    MachineSmokedGlass: {
+      color: 0xc2d0ca,
+      env: 1.08,
+      roughness: 0.1,
+      metalness: 0,
+    },
+  };
+
+  group.traverse((object) => {
+    if (!object.isMesh || !object.material) return;
+    const materials = Array.isArray(object.material)
+      ? object.material
+      : [object.material];
+    materials.forEach((material) => {
+      const tuning = palette[material.name];
+      if (!tuning) return;
+      material.color?.set(tuning.color);
+      if ("envMapIntensity" in material) {
+        material.envMapIntensity = tuning.env;
+      }
+      material.roughness = tuning.roughness;
+      material.metalness = tuning.metalness;
+      if (material.name === "MachineSmokedGlass") {
+        material.transparent = true;
+        material.opacity = 1;
+        material.transmission = 0.88;
+        material.ior = 1.47;
+        material.thickness = 0.18;
+        material.attenuationColor?.set(0xd4b8a9);
+        material.attenuationDistance = 2.6;
+        material.depthWrite = false;
+      }
+      material.needsUpdate = true;
+    });
+  });
+}
+
+function createCapsuleOneMembrane(capsule) {
+  if (!capsule?.group) return null;
+  const material = new THREE.MeshPhysicalMaterial({
+    color: 0xb9b6c9,
+    emissive: 0x9c85bc,
+    emissiveIntensity: 0.08,
+    transparent: true,
+    opacity: 0.2,
+    roughness: 0.2,
+    metalness: 0.02,
+    transmission: 0.62,
+    ior: 1.4,
+    thickness: 0.07,
+    envMapIntensity: 0.85,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const left = new THREE.Mesh(
+    new THREE.SphereGeometry(
+      0.36,
+      24,
+      14,
+      Math.PI / 2,
+      Math.PI,
+      0,
+      Math.PI,
+    ),
+    material,
+  );
+  const right = new THREE.Mesh(
+    new THREE.SphereGeometry(
+      0.36,
+      24,
+      14,
+      -Math.PI / 2,
+      Math.PI,
+      0,
+      Math.PI,
+    ),
+    material.clone(),
+  );
+  left.name = "OutputCapsuleMembraneLeft";
+  right.name = "OutputCapsuleMembraneRight";
+  capsule.group.add(left, right);
+  return { left, right };
+}
+
+function applyCapsuleOneMaterial(capsule) {
+  if (!capsule?.top || !capsule?.bottom || !capsule?.seam) return;
+  capsule.top.material = new THREE.MeshPhysicalMaterial({
+    name: "Capsule01FadedSage",
+    color: 0x91a79e,
+    emissive: 0x9c85bc,
+    emissiveIntensity: 0.12,
+    transparent: true,
+    opacity: 1,
+    roughness: 0.2,
+    metalness: 0.04,
+    transmission: 0.64,
+    ior: 1.4,
+    thickness: 0.08,
+    envMapIntensity: 0.85,
+  });
+  capsule.bottom.material = new THREE.MeshPhysicalMaterial({
+    name: "Capsule01FadedRose",
+    color: 0xc2a8b6,
+    emissive: 0x79698f,
+    emissiveIntensity: 0.1,
+    transparent: true,
+    opacity: 1,
+    roughness: 0.2,
+    metalness: 0.04,
+    transmission: 0.62,
+    ior: 1.4,
+    thickness: 0.08,
+    envMapIntensity: 0.85,
+  });
+  capsule.seam.material = new THREE.MeshStandardMaterial({
+    name: "Capsule01OxidizedSilver",
+    color: 0xb6b1a8,
+    emissive: 0x9c85bc,
+    emissiveIntensity: 0.08,
+    transparent: true,
+    opacity: 0.9,
+    roughness: 0.36,
+    metalness: 0.5,
+  });
+}
+
 export function bindGashaponGLTF(root, config) {
   const group =
     root.getObjectByName("ArchiveGashaponMachine") ||
@@ -89,6 +265,7 @@ export function bindGashaponGLTF(root, config) {
   group.position.fromArray(config.machine.position);
   group.userData.baseScale = config.machine.scale ?? 1;
   group.scale.setScalar(group.userData.baseScale);
+  tuneFormalMachineMaterials(group);
   group.traverse((object) => {
     if (!object.isMesh) return;
     object.castShadow = object.material?.name !== "MachineSmokedGlass";
@@ -112,6 +289,8 @@ export function bindGashaponGLTF(root, config) {
       transparent: true,
       toneMapped: false,
     });
+    archiveLabel.position.z += 0.035;
+    archiveLabel.renderOrder = 10;
     previousMaterial?.dispose?.();
   }
 
@@ -122,6 +301,9 @@ export function bindGashaponGLTF(root, config) {
     bottom: group.getObjectByName("OutputCapsuleBottom"),
     seam: group.getObjectByName("OutputCapsuleSeam"),
   };
+  applyCapsuleOneMaterial(capsule);
+  capsule.membrane = createCapsuleOneMembrane(capsule);
+  capsule.group.visible = false;
   const outputBay = {
     doorPivot: group.getObjectByName("OutputDoorPivot"),
     trayGroup: group.getObjectByName("OutputTray"),
@@ -148,6 +330,8 @@ export function bindGashaponGLTF(root, config) {
       green: materialByName(group, "MachineGreen"),
       wine: materialByName(group, "MachineWine"),
       metal: materialByName(group, "MachineDarkMetal"),
+      brass: materialByName(group, "MachineBrass"),
+      steel: materialByName(group, "MachineSteel"),
       glass: materialByName(group, "MachineSmokedGlass"),
       baseStatus: materialByName(group, "MachineBaseStatus"),
       trayScan: materialByName(group, "MachineTrayScan"),

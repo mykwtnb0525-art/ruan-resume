@@ -2,23 +2,26 @@ import { useLayoutEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-  ARCHIVE_CONFIG,
-  phaseFromProgress,
-  rangeProgress,
-} from "../components/archive/archiveConfig.js";
+  ARCHIVE_SCROLL,
+  evaluateArchiveNarrative,
+} from "../components/archive/archiveNarrative.js";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const RELOAD_PROGRESS_KEY = "kr-archive-reload-progress";
 
 export function useArchiveProgress({
   sectionRef,
   stageRef,
   progressRef,
+  snapshotRef,
   disabled,
   tablet,
-  onPhaseChange,
+  onSnapshotChange,
 }) {
   const triggerRef = useRef(null);
-  const phaseRef = useRef("IDLE");
+  const phaseRef = useRef("KEY_IDLE");
+  const archivedCountRef = useRef(0);
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
@@ -29,10 +32,11 @@ export function useArchiveProgress({
       triggerRef.current = ScrollTrigger.create({
         trigger: section,
         start: "top top",
-        end: () => `+=${window.innerHeight * (tablet ? 4.8 : 6.8)}`,
+        end: () =>
+          `+=${window.innerHeight * (tablet ? 9.4 : ARCHIVE_SCROLL.totalVh / 100)}`,
         pin: stage,
         pinSpacing: true,
-        scrub: 0.35,
+        scrub: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
         onRefresh: (self) => {
@@ -41,78 +45,173 @@ export function useArchiveProgress({
         },
         onUpdate: (self) => {
           const progress = self.progress;
+          const snapshot = evaluateArchiveNarrative(progress);
           progressRef.current = progress;
+          snapshotRef.current = snapshot;
           section.dataset.progress = progress.toFixed(4);
-
-          const entrance = rangeProgress(
-            progress,
-            ...ARCHIVE_CONFIG.ranges.collage,
-          );
-          const collage = rangeProgress(
-            progress,
-            ...ARCHIVE_CONFIG.ranges.collage,
-          );
-          const travel = rangeProgress(
-            progress,
-            ...ARCHIVE_CONFIG.ranges.travel,
-          );
-          const arrival = rangeProgress(
-            progress,
-            ...ARCHIVE_CONFIG.ranges.arrival,
-          );
-          const boot = rangeProgress(progress, ...ARCHIVE_CONFIG.ranges.boot);
-          const dispense = rangeProgress(
-            progress,
-            ...ARCHIVE_CONFIG.ranges.dispense,
-          );
-          const reveal = rangeProgress(
-            progress,
-            ...ARCHIVE_CONFIG.ranges.reveal,
-          );
+          section.dataset.chapterProgress =
+            snapshot.chapterProgress.toFixed(4);
+          section.dataset.archived = String(snapshot.archivedCount);
 
           section.style.setProperty("--archive-progress", progress.toFixed(4));
           section.style.setProperty(
+            "--entry-progress",
+            snapshot.entryProgress.toFixed(4),
+          );
+          section.style.setProperty(
+            "--chapter-progress",
+            snapshot.chapterProgress.toFixed(4),
+          );
+          section.style.setProperty(
             "--entrance-progress",
-            entrance.toFixed(4),
+            snapshot.entry.entrance.toFixed(4),
           );
           section.style.setProperty(
             "--collage-progress",
-            collage.toFixed(4),
+            snapshot.entry.collage.toFixed(4),
           );
-          section.style.setProperty("--travel-progress", travel.toFixed(4));
-          section.style.setProperty("--arrival-progress", arrival.toFixed(4));
-          section.style.setProperty("--boot-progress", boot.toFixed(4));
+          section.style.setProperty(
+            "--travel-progress",
+            snapshot.entry.travel.toFixed(4),
+          );
+          section.style.setProperty(
+            "--arrival-progress",
+            snapshot.entry.arrival.toFixed(4),
+          );
+          section.style.setProperty(
+            "--identify-progress",
+            snapshot.chapter.identify.toFixed(4),
+          );
+          section.style.setProperty(
+            "--prime-progress",
+            snapshot.chapter.prime.toFixed(4),
+          );
+          section.style.setProperty(
+            "--activate-progress",
+            snapshot.chapter.activate.toFixed(4),
+          );
+          section.style.setProperty(
+            "--boot-progress",
+            Math.max(
+              snapshot.chapter.prime,
+              snapshot.chapter.activate,
+            ).toFixed(4),
+          );
           section.style.setProperty(
             "--dispense-progress",
-            dispense.toFixed(4),
+            snapshot.chapter.dispense.toFixed(4),
           );
-          section.style.setProperty("--reveal-progress", reveal.toFixed(4));
+          section.style.setProperty(
+            "--land-progress",
+            snapshot.chapter.land.toFixed(4),
+          );
+          section.style.setProperty(
+            "--open-progress",
+            snapshot.chapter.open.toFixed(4),
+          );
+          section.style.setProperty(
+            "--archive-emerge-progress",
+            snapshot.chapter.emerge.toFixed(4),
+          );
+          section.style.setProperty(
+            "--archive-read-progress",
+            snapshot.chapter.read.toFixed(4),
+          );
+          section.style.setProperty(
+            "--archive-close-progress",
+            snapshot.chapter.close.toFixed(4),
+          );
+          section.style.setProperty(
+            "--commit-progress",
+            snapshot.chapter.commit.toFixed(4),
+          );
+          section.style.setProperty(
+            "--bridge-progress",
+            snapshot.chapter.bridge.toFixed(4),
+          );
+          section.style.setProperty(
+            "--reveal-progress",
+            snapshot.chapter.archiveVisibility.toFixed(4),
+          );
 
-          const nextPhase = phaseFromProgress(progress);
-          if (nextPhase !== phaseRef.current) {
-            phaseRef.current = nextPhase;
-            section.dataset.phase = nextPhase;
-            onPhaseChange(nextPhase);
+          const snapshotChanged =
+            snapshot.phase !== phaseRef.current ||
+            snapshot.archivedCount !== archivedCountRef.current;
+          if (snapshotChanged) {
+            phaseRef.current = snapshot.phase;
+            archivedCountRef.current = snapshot.archivedCount;
+            section.dataset.phase = snapshot.phase;
+            onSnapshotChange(snapshot);
           }
         },
       });
     }, section);
 
     const refresh = () => ScrollTrigger.refresh();
+    const saveReloadProgress = () => {
+      try {
+        sessionStorage.setItem(
+          RELOAD_PROGRESS_KEY,
+          String(progressRef.current),
+        );
+      } catch {
+        // Session storage can be unavailable; native browser restoration remains.
+      }
+    };
+    const restoreReloadProgress = () => {
+      const navigation = performance.getEntriesByType?.("navigation")?.[0];
+      if (navigation?.type !== "reload") return;
+
+      let savedProgress = Number.NaN;
+      try {
+        savedProgress = Number(sessionStorage.getItem(RELOAD_PROGRESS_KEY));
+        sessionStorage.removeItem(RELOAD_PROGRESS_KEY);
+      } catch {
+        return;
+      }
+      if (!Number.isFinite(savedProgress) || savedProgress <= 0) return;
+
+      window.requestAnimationFrame(() => {
+        refresh();
+        window.requestAnimationFrame(() => {
+          const trigger = triggerRef.current;
+          if (!trigger) return;
+          const previousBehavior =
+            document.documentElement.style.scrollBehavior;
+          document.documentElement.style.scrollBehavior = "auto";
+          window.scrollTo({
+            top: trigger.start + (trigger.end - trigger.start) * savedProgress,
+            behavior: "instant",
+          });
+          ScrollTrigger.update();
+          window.requestAnimationFrame(() => {
+            document.documentElement.style.scrollBehavior = previousBehavior;
+          });
+        });
+      });
+    };
     window.addEventListener("resize", refresh);
-    document.fonts?.ready.then(refresh).catch(() => {});
+    window.addEventListener("beforeunload", saveReloadProgress);
+    document.fonts?.ready
+      .then(() => {
+        refresh();
+        restoreReloadProgress();
+      })
+      .catch(restoreReloadProgress);
 
     return () => {
       window.removeEventListener("resize", refresh);
+      window.removeEventListener("beforeunload", saveReloadProgress);
       triggerRef.current?.kill();
       triggerRef.current = null;
       context.revert();
     };
   }, [
     disabled,
-    onPhaseChange,
+    onSnapshotChange,
     progressRef,
     sectionRef,
+    snapshotRef,
     stageRef,
     tablet,
   ]);

@@ -25,15 +25,6 @@ export const ARCHIVE_CONFIG = {
     fovStart: 46,
     fovEnd: 41,
   },
-  ranges: {
-    idle: [0, 0.18],
-    collage: [0.18, 0.42],
-    travel: [0.42, 0.7],
-    arrival: [0.7, 0.86],
-    boot: [0.86, 0.95],
-    dispense: [0.91, 0.95],
-    reveal: [0.95, 1],
-  },
   colors: {
     paper: "#e8d5c4",
     paperLight: "#f2e3d4",
@@ -48,30 +39,10 @@ export const ARCHIVE_CONFIG = {
     muted: "#7e7771",
   },
   machine: {
-    position: [0, -2.1, 0],
-    scale: 0.68,
-    capsuleCount: 24,
+    position: [0.14, -2.2, 0],
+    scale: 0.62,
+    height: 6.12,
+    capsuleCount: 32,
     modelMode: "gltf",
   },
 };
-
-export const ARCHIVE_PHASES = [
-  ["IDLE", 0, 0.18],
-  ["TRAVEL", 0.18, 0.7],
-  ["TARGET_LOCK", 0.7, 0.86],
-  ["BOOTING", 0.86, 0.91],
-  ["DISPENSING", 0.91, 0.95],
-  ["UNSEALED", 0.95, 1.01],
-];
-
-export function rangeProgress(progress, start, end) {
-  return Math.min(1, Math.max(0, (progress - start) / (end - start)));
-}
-
-export function phaseFromProgress(progress) {
-  return (
-    ARCHIVE_PHASES.find(
-      ([, start, end]) => progress >= start && progress < end,
-    )?.[0] || "UNSEALED"
-  );
-}

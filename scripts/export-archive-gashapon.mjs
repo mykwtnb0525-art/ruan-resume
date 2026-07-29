@@ -48,7 +48,7 @@ scene.name = "KR_MemoryArchive_Gashapon";
 const machine = createGashaponMachine({
   machine: {
     position: [0, 0, 0],
-    capsuleCount: 24,
+    capsuleCount: 32,
   },
 });
 
@@ -56,7 +56,7 @@ machine.group.position.set(0, 0, 0);
 machine.group.rotation.set(0, 0, 0);
 machine.group.scale.setScalar(1);
 machine.capsule.group.visible = true;
-machine.capsule.group.position.set(0, 0.5, 1.72);
+machine.capsule.group.position.set(-0.03, 0.5, 1.48);
 machine.capsule.group.name = "OutputCapsule";
 machine.dial.group.name = "MechanicalDial";
 machine.outputBay.doorPivot.name = "OutputDoorPivot";

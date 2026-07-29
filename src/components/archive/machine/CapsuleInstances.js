@@ -1,47 +1,50 @@
 import * as THREE from "three";
 
 const CAPSULE_STYLES = [
-  [0xcfc4b2, 0x6b1924],
-  [0x777571, 0xc9bba4],
-  [0x17372f, 0xb9aa93],
-  [0x426d6d, 0x182e2e],
-  [0x735c78, 0xc7b8c9],
-  [0x77726a, 0x2e302f],
+  [0xd6c6b2, 0x9b5762],
+  [0x8e8780, 0xc0b5a4],
+  [0x5f786e, 0xb8aa93],
+  [0x5f8480, 0x536e6b],
+  [0x816f87, 0xc7b8c9],
+  [0x9a958c, 0x656a66],
 ];
 
 function capsuleMaterial(color, transparent = false) {
   return new THREE.MeshStandardMaterial({
     color,
-    roughness: transparent ? 0.28 : 0.46,
-    metalness: transparent ? 0.08 : 0.18,
-    transparent,
-    opacity: transparent ? 0.7 : 1,
+    roughness: transparent ? 0.18 : 0.24,
+    metalness: transparent ? 0.04 : 0.08,
+    transparent: true,
+    opacity: transparent ? 0.72 : 0.86,
+    envMapIntensity: transparent ? 0.96 : 0.86,
+    depthWrite: true,
   });
 }
 
-export function createCapsuleInstances(count = 24) {
+export function createCapsuleInstances(count = 32) {
   const group = new THREE.Group();
   group.name = "CapsuleInstances";
 
   const topGeometry = new THREE.SphereGeometry(
-    0.245,
-    18,
-    10,
+    0.205,
+    22,
+    12,
     0,
     Math.PI * 2,
     0,
     Math.PI / 2,
   );
   const bottomGeometry = new THREE.SphereGeometry(
-    0.245,
-    18,
-    10,
+    0.205,
+    22,
+    12,
     0,
     Math.PI * 2,
     Math.PI / 2,
     Math.PI / 2,
   );
-  const seamGeometry = new THREE.TorusGeometry(0.245, 0.018, 7, 18);
+  const seamGeometry = new THREE.TorusGeometry(0.205, 0.014, 7, 22);
+  seamGeometry.rotateX(Math.PI / 2);
   const perStyle = Math.ceil(count / CAPSULE_STYLES.length);
   const capsuleMeshes = [];
   const dummy = new THREE.Object3D();
@@ -65,7 +68,12 @@ export function createCapsuleInstances(count = 24) {
     );
     const seam = new THREE.InstancedMesh(
       seamGeometry,
-      capsuleMaterial(0x292421),
+      new THREE.MeshStandardMaterial({
+        color: 0x4c4641,
+        roughness: 0.34,
+        metalness: 0.42,
+        envMapIntensity: 0.78,
+      }),
       actualCount,
     );
 
@@ -73,20 +81,20 @@ export function createCapsuleInstances(count = 24) {
       const index = styleIndex * perStyle + localIndex;
       const layer = Math.floor(index / 8);
       const slot = index % 8;
-      const angle = slot * (Math.PI / 4) + layer * 0.42;
-      const radius = 0.34 + (slot % 3) * 0.22;
+      const angle = slot * (Math.PI / 4) + layer * 0.37;
+      const radius = 0.28 + (slot % 3) * 0.22 + (layer % 2) * 0.035;
       dummy.position.set(
         Math.cos(angle) * radius,
-        -0.53 + layer * 0.47 + (slot % 2) * 0.06,
-        Math.sin(angle) * radius * 0.62,
+        -0.66 + layer * 0.43 + (slot % 2) * 0.045,
+        Math.sin(angle) * radius * 0.56,
       );
       dummy.rotation.set(
         (index % 4) * 0.32,
         angle * 0.45,
         (index % 5) * 0.27,
       );
-      const scale = 0.86 + (index % 3) * 0.075;
-      dummy.scale.set(scale, scale * 0.84, scale);
+      const scale = 0.88 + (index % 4) * 0.045;
+      dummy.scale.set(scale, scale * 0.88, scale);
       dummy.updateMatrix();
       top.setMatrixAt(localIndex, dummy.matrix);
       bottom.setMatrixAt(localIndex, dummy.matrix);

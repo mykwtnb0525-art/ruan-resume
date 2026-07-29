@@ -5,13 +5,17 @@ import {
   useState,
 } from "react";
 import { ArrowDown } from "@phosphor-icons/react";
-import Crosshair from "../Crosshair.jsx";
 import { useArchiveProgress } from "../../hooks/useArchiveProgress.js";
 import { useReducedMotion } from "../../hooks/useReducedMotion.js";
-import { phaseFromProgress } from "./archiveConfig.js";
+import {
+  ARCHIVE_SCROLL,
+  evaluateArchiveNarrative,
+  INITIAL_ARCHIVE_SNAPSHOT,
+} from "./archiveNarrative.js";
 import { ArchiveCanvas } from "./ArchiveCanvas.jsx";
+import { ArchiveDebugPanel } from "./ArchiveDebugPanel.jsx";
 import { ArchiveHud } from "./ArchiveHud.jsx";
-import { InternshipReveal } from "./InternshipReveal.jsx";
+import { ProjectArchiveReveal } from "./ProjectArchiveReveal.jsx";
 import { ReducedMotionArchive } from "./ReducedMotionArchive.jsx";
 import "./archive-sequence.css";
 
@@ -19,12 +23,48 @@ export function ArchiveSequence() {
   const sectionRef = useRef(null);
   const stageRef = useRef(null);
   const progressRef = useRef(0);
+  const snapshotRef = useRef(INITIAL_ARCHIVE_SNAPSHOT);
   const { reducedMotion, compact, tablet } = useReducedMotion();
-  const staticMode = reducedMotion || compact;
-  const [phase, setPhase] = useState(staticMode ? "TARGET_LOCK" : "IDLE");
-  const [displayProgress, setDisplayProgress] = useState(staticMode ? 0.8 : 0);
+  const staticMode = reducedMotion;
+  const [phase, setPhase] = useState(
+    staticMode ? "MACHINE_AWAKE" : "KEY_IDLE",
+  );
+  const [archivedCount, setArchivedCount] = useState(0);
+  const [displayProgress, setDisplayProgress] = useState(staticMode ? 0.51 : 0);
   const [opened, setOpened] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const requestedLightingPass =
+    typeof window === "undefined"
+      ? "final"
+      : new URLSearchParams(window.location.search).get("lightingPass");
+  const lightingPass = [
+    "base",
+    "environment",
+    "ground",
+    "atmosphere",
+    "final",
+  ].includes(requestedLightingPass)
+    ? requestedLightingPass
+    : "final";
+  const requestedVisualMode =
+    typeof window === "undefined"
+      ? "final"
+      : new URLSearchParams(window.location.search).get("visualMode");
+  const visualMode = [
+    "model-front",
+    "model-three-quarter",
+    "material",
+    "glass",
+    "lighting",
+    "background-base",
+    "background-collage",
+    "integrated",
+    "final",
+  ].includes(requestedVisualMode)
+    ? requestedVisualMode
+    : "final";
+  const showNarrativeDebug =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("debugNarrative");
   const [muted, setMuted] = useState(() => {
     try {
       return localStorage.getItem("kr-archive-muted") !== "false";
@@ -33,67 +73,52 @@ export function ArchiveSequence() {
     }
   });
 
-  const handlePhaseChange = useCallback((nextPhase) => {
-    setPhase(nextPhase);
-    setDismissed(false);
+  const handleSnapshotChange = useCallback((snapshot) => {
+    setPhase(snapshot.phase);
+    setArchivedCount(snapshot.archivedCount);
   }, []);
 
   const controls = useArchiveProgress({
     sectionRef,
     stageRef,
     progressRef,
+    snapshotRef,
     disabled: staticMode,
     tablet,
-    onPhaseChange: handlePhaseChange,
+    onSnapshotChange: handleSnapshotChange,
   });
 
   useEffect(() => {
     if (!staticMode) return undefined;
-    progressRef.current = opened ? 1 : 0.8;
-    const nextPhase = opened ? "UNSEALED" : "TARGET_LOCK";
-    setPhase(nextPhase);
-    setDisplayProgress(progressRef.current);
-    sectionRef.current?.style.setProperty(
-      "--reveal-progress",
+    const entryWeight = ARCHIVE_SCROLL.entryVh / ARCHIVE_SCROLL.totalVh;
+    const progress = opened
+      ? entryWeight + (1 - entryWeight) * 0.82
+      : entryWeight;
+    const snapshot = evaluateArchiveNarrative(progress);
+    progressRef.current = progress;
+    snapshotRef.current = snapshot;
+    setPhase(snapshot.phase);
+    setArchivedCount(snapshot.archivedCount);
+    setDisplayProgress(progress);
+    const section = sectionRef.current;
+    section?.style.setProperty("--entrance-progress", "1");
+    section?.style.setProperty("--collage-progress", "1");
+    section?.style.setProperty("--travel-progress", "1");
+    section?.style.setProperty("--arrival-progress", "1");
+    section?.style.setProperty("--prime-progress", opened ? "1" : "0");
+    section?.style.setProperty("--activate-progress", opened ? "1" : "0");
+    section?.style.setProperty("--boot-progress", opened ? "1" : "0");
+    section?.style.setProperty("--dispense-progress", opened ? "1" : "0");
+    section?.style.setProperty("--land-progress", opened ? "1" : "0");
+    section?.style.setProperty("--open-progress", opened ? "1" : "0");
+    section?.style.setProperty("--reveal-progress", opened ? "1" : "0");
+    section?.style.setProperty(
+      "--archive-emerge-progress",
       opened ? "1" : "0",
     );
+    section?.style.setProperty("--archive-read-progress", opened ? "0.5" : "0");
     return undefined;
   }, [opened, staticMode]);
-
-  useEffect(() => {
-    if (!compact || reducedMotion) return undefined;
-    let frame = 0;
-    const update = () => {
-      const section = sectionRef.current;
-      if (!section) return;
-      const rect = section.getBoundingClientRect();
-      const distance = Math.max(1, rect.height - window.innerHeight);
-      const local = Math.min(1, Math.max(0, -rect.top / distance));
-      const progress = 0.7 + local * 0.3;
-      progressRef.current = progress;
-      section.dataset.progress = progress.toFixed(4);
-      setDisplayProgress(progress);
-      const nextPhase = phaseFromProgress(progress);
-      setPhase((current) => (current === nextPhase ? current : nextPhase));
-      section.style.setProperty(
-        "--reveal-progress",
-        progress >= 0.95 ? String((progress - 0.95) / 0.05) : "0",
-      );
-      if (progress >= 0.985) setOpened(true);
-      frame = 0;
-    };
-    const requestUpdate = () => {
-      if (!frame) frame = window.requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("resize", requestUpdate);
-    return () => {
-      window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("resize", requestUpdate);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, [compact, reducedMotion]);
 
   useEffect(() => {
     if (staticMode) return undefined;
@@ -114,15 +139,18 @@ export function ArchiveSequence() {
     }
   }, [muted]);
 
-  useEffect(() => {
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") setDismissed(true);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  const revealed = opened || phase === "UNSEALED";
+  const archiveActive =
+    opened ||
+    [
+      "ARCHIVE_EMERGE",
+      "ARCHIVE_READ",
+      "ARCHIVE_CLOSE",
+      "MEMORY_COMMIT",
+      "NEXT_CHAPTER_BRIDGE",
+    ].includes(phase);
+  const debugSnapshot = showNarrativeDebug
+    ? evaluateArchiveNarrative(displayProgress)
+    : null;
 
   return (
     <section
@@ -130,19 +158,31 @@ export function ArchiveSequence() {
       className={`archive-sequence ${staticMode ? "is-static" : ""}`}
       id="chapter"
       data-phase={phase}
+      data-lighting-pass={lightingPass}
+      data-visual-mode={visualMode}
       aria-labelledby="archive-sequence-title"
     >
       <div ref={stageRef} className="archive-sequence__stage">
         <ArchiveCanvas
-          progressRef={progressRef}
+          snapshotRef={snapshotRef}
           staticMode={staticMode}
           compact={compact}
+          lightingPass={lightingPass}
+          visualMode={visualMode}
         />
         <div
           className="archive-sequence__atmosphere"
           aria-hidden="true"
           style={{
-            backgroundImage: `linear-gradient(90deg, rgba(8,9,11,.88) 0%, rgba(44,25,24,.64) 46%, rgba(8,9,11,.8) 100%), url("${import.meta.env.BASE_URL}assets/archive-dream-corridor.png")`,
+            backgroundImage: `url("${import.meta.env.BASE_URL}assets/archive-dream-corridor.png")`,
+          }}
+        />
+        <div className="archive-sequence__portal-depth" aria-hidden="true" />
+        <div
+          className="archive-sequence__collage-field"
+          aria-hidden="true"
+          style={{
+            backgroundImage: `url("${import.meta.env.BASE_URL}assets/archive-dream-corridor.png")`,
           }}
         />
         <div className="archive-sequence__memory-fragments" aria-hidden="true">
@@ -180,22 +220,20 @@ export function ArchiveSequence() {
           </span>
         </div>
 
-        {!compact && !reducedMotion ? (
-          <Crosshair
-            containerRef={stageRef}
-            color="#ba72ff"
-            accent="#9f1e2d"
-            cyan="#00d7e8"
-          />
-        ) : null}
-
         <div className="archive-sequence__paper" aria-hidden="true" />
+        <div className="archive-sequence__color-wash" aria-hidden="true" />
+        <div className="archive-sequence__air" aria-hidden="true" />
         <div className="archive-sequence__grain" aria-hidden="true" />
         <div className="archive-sequence__scanlines" aria-hidden="true" />
+        <div
+          className="archive-sequence__environment-vignette"
+          aria-hidden="true"
+        />
 
         <ArchiveHud
           phase={phase}
           progress={displayProgress}
+          archivedCount={archivedCount}
           muted={muted}
           onToggleMuted={() => setMuted((value) => !value)}
         />
@@ -203,21 +241,21 @@ export function ArchiveSequence() {
         <div className="archive-sequence__entrance section-shell">
           <div className="archive-sequence__copy">
             <p className="archive-sequence__code">
-              &gt; MOUNT /VISUAL_ARCHIVE
+              &gt; IDENTITY / KAICHENG RUAN
               <br />
-              &gt; LOAD MEMORY_FRAGMENTS... 100%
+              &gt; ACCESS KEY... VERIFIED
               <br />
-              &gt; DIRECTOR_MODE: ACTIVE
+              &gt; SIX PROJECT ARCHIVES DETECTED
             </p>
-            <p className="eyebrow">CHAPTER 01 / INSERT COIN</p>
+            <p className="eyebrow">ACCESS SEQUENCE / MEMORY UNIT 01</p>
             <h2 id="archive-sequence-title" data-crosshair-lock>
               <span>ENTER</span>
               <span>THE ARCHIVE</span>
             </h2>
             <p className="archive-sequence__lead">
-              从这里开始，进入镜头、记忆与生成式影像
+              身份确认完成。继续向内，唤醒被封存在镜头里的项目记忆。
               <br />
-              共同构成的视觉档案。
+              第一枚胶囊：艺人合作 AIGC MV。
             </p>
             <button
               className="archive-sequence__continue"
@@ -242,40 +280,31 @@ export function ArchiveSequence() {
         </div>
 
         <p className="archive-sequence__arrival-copy">
-          经历不是陈列，
+          项目不是陈列，
           <br />
           而是被重新唤醒。
-          <span>EXPERIENCE IS NOT STORED. IT IS DISPENSED.</span>
+          <span>THE PROJECT IS NOT STORED. IT IS DISPENSED.</span>
         </p>
 
         <div
           className="archive-sequence__machine-hotspot"
-          data-cursor={phase === "DISPENSING" ? "OPEN" : "TURN"}
+          data-cursor={
+            ["CAPSULE_LAND", "CAPSULE_OPEN"].includes(phase)
+              ? "OPEN"
+              : "TURN"
+          }
           aria-hidden="true"
         />
 
-        <InternshipReveal
-          revealed={revealed}
-          dismissed={dismissed}
-          onDismiss={() => setDismissed(true)}
-        />
-
-        {revealed && dismissed ? (
-          <button
-            className="archive-sequence__reopen"
-            type="button"
-            onClick={() => setDismissed(false)}
-            data-cursor="OPEN"
-          >
-            REOPEN ARCHIVE
-          </button>
+        <ProjectArchiveReveal active={archiveActive} />
+        {showNarrativeDebug ? (
+          <ArchiveDebugPanel snapshot={debugSnapshot} />
         ) : null}
 
         {staticMode ? (
           <ReducedMotionArchive
             opened={opened}
             onOpen={() => {
-              setDismissed(false);
               setOpened(true);
             }}
             reducedMotion={reducedMotion}
@@ -285,7 +314,11 @@ export function ArchiveSequence() {
         <button
           className="archive-sequence__skip"
           type="button"
-          onClick={staticMode ? () => document.querySelector("#profile")?.scrollIntoView() : controls.skip}
+          onClick={
+            staticMode
+              ? () => document.querySelector("#profile")?.scrollIntoView()
+              : controls.skip
+          }
         >
           跳过序章 / SKIP
         </button>

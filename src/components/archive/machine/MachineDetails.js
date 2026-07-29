@@ -5,14 +5,14 @@ import { MACHINE_DIMENSIONS } from "./machineConfig.js";
 export function createMachineDetails(materials) {
   const group = new THREE.Group();
   group.name = "MachineDetails";
-  const frontZ = 1.53;
+  const frontZ = 1.2;
 
   const screwGeometry = new THREE.CylinderGeometry(0.045, 0.045, 0.035, 14);
   [
-    [-0.5, 1.08],
-    [0.5, 1.08],
-    [-0.5, 2.38],
-    [0.5, 2.38],
+    [-0.48, 1.04],
+    [0.43, 1.04],
+    [-0.48, 2.48],
+    [0.43, 2.48],
   ].forEach(([x, y]) => {
     const screw = new THREE.Mesh(screwGeometry, materials.steel);
     screw.rotation.x = Math.PI / 2;
@@ -23,8 +23,8 @@ export function createMachineDetails(materials) {
   const ventGeometry = createRoundedBoxGeometry(0.58, 0.035, 0.035, 0.012);
   for (let index = 0; index < 6; index += 1) {
     const vent = new THREE.Mesh(ventGeometry, materials.rubber);
-    vent.position.set(0.92, 1.2 + index * 0.11, 1.18);
-    vent.rotation.y = 0.64;
+    vent.position.set(0.98, 1.18 + index * 0.11, 0.84);
+    vent.rotation.y = 0.3;
     group.add(vent);
   }
 
@@ -32,26 +32,38 @@ export function createMachineDetails(materials) {
     createRoundedBoxGeometry(0.86, 0.58, 0.035, 0.045),
     materials.greenDark,
   );
-  maintenance.position.set(-0.92, 1.63, 1.18);
-  maintenance.rotation.y = -0.64;
+  maintenance.position.set(-0.96, 1.68, 0.82);
+  maintenance.rotation.y = -0.28;
   group.add(maintenance);
 
   const signFrame = new THREE.Mesh(
-    createRoundedBoxGeometry(1.66, 0.58, 0.18, 0.1),
+    createRoundedBoxGeometry(1.5, 0.54, 0.24, 0.075),
     materials.brass,
   );
-  signFrame.position.set(0, 5.42, 0.22);
+  signFrame.position.set(0, 5.7, 0.27);
   const signFace = new THREE.Mesh(
-    createRoundedBoxGeometry(1.5, 0.42, 0.06, 0.07),
+    createRoundedBoxGeometry(1.33, 0.37, 0.07, 0.055),
     materials.wine,
   );
-  signFace.position.set(0, 5.42, 0.33);
+  signFace.position.set(0, 5.7, 0.43);
 
   const signArch = new THREE.Mesh(
-    new THREE.TorusGeometry(0.76, 0.07, 10, 40, Math.PI),
+    new THREE.TorusGeometry(0.72, 0.065, 10, 42, Math.PI),
     materials.metal,
   );
-  signArch.position.set(0, 5.42, 0.14);
+  signArch.position.set(0, 5.42, 0.08);
+
+  const archBracketGeometry = createRoundedBoxGeometry(
+    0.11,
+    0.42,
+    0.12,
+    0.028,
+  );
+  [-0.72, 0.72].forEach((x) => {
+    const bracket = new THREE.Mesh(archBracketGeometry, materials.metal);
+    bracket.position.set(x, 5.34, 0.08);
+    group.add(bracket);
+  });
 
   const labelMaterial =
     typeof document === "undefined"
@@ -83,26 +95,26 @@ export function createMachineDetails(materials) {
     labelMaterial,
   );
   label.name = "MachineArchiveLabel";
-  label.position.set(0, 5.42, 0.368);
+  label.position.set(0, 5.7, 0.472);
 
   const outputPlate = new THREE.Mesh(
     createRoundedBoxGeometry(0.88, 0.58, 0.08, 0.06),
     materials.ivory,
   );
-  outputPlate.position.set(0, 0.64, 1.69);
+  outputPlate.position.set(-0.03, 0.7, 1.34);
   outputPlate.rotation.x = -0.08;
 
   const keyRing = new THREE.Mesh(
     new THREE.TorusGeometry(0.12, 0.035, 8, 24),
     materials.brass,
   );
-  keyRing.position.set(0.75, 1.8, 1.28);
+  keyRing.position.set(0.72, 1.84, 1.12);
   keyRing.rotation.y = 0.28;
   const keyStem = new THREE.Mesh(
     createRoundedBoxGeometry(0.07, 0.48, 0.05, 0.02),
     materials.brass,
   );
-  keyStem.position.set(0.75, 1.5, 1.28);
+  keyStem.position.set(0.72, 1.55, 1.12);
   keyStem.rotation.z = -0.12;
 
   group.add(

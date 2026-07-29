@@ -1,13 +1,13 @@
 export const MACHINE_DIMENSIONS = {
-  width: 2.95,
-  height: 5.45,
-  depth: 2.72,
-  bodyHeight: 2.32,
-  chamberWidth: 2.64,
-  chamberHeight: 2.05,
-  chamberDepth: 2.64,
-  dialRadius: 0.5,
-  outputWidth: 0.94,
+  width: 2.82,
+  height: 6.12,
+  depth: 2.34,
+  bodyHeight: 2.48,
+  chamberWidth: 2.58,
+  chamberHeight: 2.2,
+  chamberDepth: 2.16,
+  dialRadius: 0.45,
+  outputWidth: 0.9,
 };
 
 export const MACHINE_PALETTE = {
@@ -86,14 +86,17 @@ export function createMachineMaterials(THREE) {
   });
   rubber.name = "MachineRubber";
   const glass = new THREE.MeshPhysicalMaterial({
-    color: MACHINE_PALETTE.glass,
-    roughness: 0.2,
+    color: 0xb8c7c0,
+    roughness: 0.1,
     metalness: 0,
     transparent: true,
-    opacity: 0.34,
-    transmission: 0.34,
-    thickness: 0.82,
-    ior: 1.38,
+    opacity: 1,
+    transmission: 0.88,
+    thickness: 0.18,
+    ior: 1.47,
+    attenuationColor: new THREE.Color(0xd2b8aa),
+    attenuationDistance: 2.8,
+    envMapIntensity: 1.05,
     depthWrite: false,
     side: THREE.DoubleSide,
   });

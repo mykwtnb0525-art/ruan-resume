@@ -35,8 +35,8 @@ export function createMachineLights() {
     socket.rotation.x = Math.PI / 2;
     socket.position.set(
       -0.25 + index * 0.25,
-      2.72,
-      1.56,
+      2.71,
+      1.25,
     );
     const bulb = new THREE.Mesh(
       new THREE.SphereGeometry(0.052, 14, 10),
@@ -49,10 +49,10 @@ export function createMachineLights() {
 
   const chamberLight = new THREE.PointLight(0xba72ff, 0, 4.2, 2);
   chamberLight.name = "MachineChamberLight";
-  chamberLight.position.set(0, 4.65, 0.18);
+  chamberLight.position.set(0, 4.58, -0.2);
   const trayLight = new THREE.PointLight(MACHINE_PALETTE.red, 0, 2.8, 2);
   trayLight.name = "MachineTrayLight";
-  trayLight.position.set(0, 0.92, 1.62);
+  trayLight.position.set(0, 0.94, 1.34);
   group.add(chamberLight, trayLight);
 
   return { group, statusMaterials, chamberLight, trayLight };
