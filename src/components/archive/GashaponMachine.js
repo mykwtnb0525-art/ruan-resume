@@ -13,6 +13,7 @@ import {
   createOpeningRig,
 } from "./rigs/CapsuleRig.js";
 import { createTextTexture } from "./threeUtils.js";
+import { ARCHIVE_VISUAL_BASELINE } from "./visual/visualBaseline.js";
 
 export function createGashaponMachine(config, chapterConfig) {
   const group = new THREE.Group();
@@ -88,62 +89,7 @@ function materialByName(root, name) {
 }
 
 function tuneFormalMachineMaterials(group) {
-  const palette = {
-    MachineIvory: {
-      color: 0xc0ae96,
-      env: 0.68,
-      roughness: 0.53,
-      metalness: 0.09,
-    },
-    MachineIvoryDark: {
-      color: 0x9d8873,
-      env: 0.58,
-      roughness: 0.61,
-      metalness: 0.08,
-    },
-    MachineGreen: {
-      color: 0x4b6358,
-      env: 0.75,
-      roughness: 0.45,
-      metalness: 0.14,
-    },
-    MachineGreenDark: {
-      color: 0x30493f,
-      env: 0.62,
-      roughness: 0.54,
-      metalness: 0.14,
-    },
-    MachineWine: {
-      color: 0x61333b,
-      env: 0.66,
-      roughness: 0.52,
-      metalness: 0.16,
-    },
-    MachineBrass: {
-      color: 0x8d6a42,
-      env: 1.02,
-      roughness: 0.3,
-      metalness: 0.9,
-    },
-    MachineSteel: {
-      color: 0x655f59,
-      env: 0.82,
-      roughness: 0.36,
-      metalness: 0.78,
-    },
-    MachineDarkMetal: {
-      color: 0x292522,
-      env: 0.72,
-      roughness: 0.39,
-      metalness: 0.72,
-    },
-    MachineSmokedGlass: {
-      color: 0xc2d0ca,
-      env: 1.08,
-      roughness: 0.1,
-      metalness: 0,
-    },
-  };
+  const palette = ARCHIVE_VISUAL_BASELINE.materials;
 
   group.traverse((object) => {
     if (!object.isMesh || !object.material) return;
@@ -155,19 +101,22 @@ function tuneFormalMachineMaterials(group) {
       if (!tuning) return;
       material.color?.set(tuning.color);
       if ("envMapIntensity" in material) {
-        material.envMapIntensity = tuning.env;
+        material.envMapIntensity = tuning.envMapIntensity;
       }
       material.roughness = tuning.roughness;
       material.metalness = tuning.metalness;
       if (material.name === "MachineSmokedGlass") {
         material.transparent = true;
         material.opacity = 1;
-        material.transmission = 0.88;
-        material.ior = 1.47;
-        material.thickness = 0.18;
-        material.attenuationColor?.set(0xd4b8a9);
-        material.attenuationDistance = 2.6;
+        material.transmission = tuning.transmission;
+        material.ior = tuning.ior;
+        material.thickness = tuning.thickness;
+        material.attenuationColor?.set(tuning.attenuationColor);
+        material.attenuationDistance = tuning.attenuationDistance;
         material.depthWrite = false;
+        material.depthTest = true;
+        material.side = THREE.FrontSide;
+        object.renderOrder = tuning.renderOrder;
       }
       material.needsUpdate = true;
     });
@@ -222,6 +171,9 @@ export function bindGashaponGLTF(root, config, chapterConfig) {
   capsule.membrane = createOpeningRig(capsule, chapterConfig);
   capsule.group.scale.setScalar(chapterConfig.capsule.size);
   capsule.group.visible = false;
+  capsule.group.traverse((object) => {
+    if (object.isMesh) object.renderOrder = 14;
+  });
   const outputBay = {
     doorPivot: group.getObjectByName("OutputDoorPivot"),
     trayGroup: group.getObjectByName("OutputTray"),

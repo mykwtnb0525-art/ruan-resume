@@ -108,26 +108,26 @@ const crosshairLockState = await page.locator(".acid-crosshair").evaluate((eleme
   globalCursorHidden: document.body.classList.contains("crosshair-active"),
 }));
 const archiveTravel = await setArchiveProgress(
-  0.31,
+  0.34,
   "implementation-archive-travel.png",
 );
 const archiveArrival = await setArchiveProgress(
-  0.52,
+  0.5,
   "implementation-archive-arrival.png",
 );
 const archiveBoot = await setArchiveProgress(
-  0.7,
+  0.697,
   "implementation-archive-boot.png",
 );
 const archiveDispense = await setArchiveProgress(
-  0.85,
+  0.756,
   "implementation-archive-dispense.png",
 );
 const archiveReveal = await setArchiveProgress(
-  0.965,
+  0.902,
   "implementation-archive-internship.png",
 );
-await page.locator(".internship-reveal__continue").click();
+await page.locator(".project-archive-reveal__continue").click();
 await page.waitForFunction(() => window.location.hash === "#profile");
 await page.waitForTimeout(350);
 await page.screenshot({
@@ -184,16 +184,17 @@ await mobilePage.screenshot({
   path: "implementation-mobile-chapter.png",
 });
 await mobilePage.locator("#chapter").evaluate((element) => {
-  const top = window.scrollY + element.getBoundingClientRect().top;
-  window.scrollTo(0, top + element.offsetHeight - window.innerHeight - 2);
+  const start = Number(element.dataset.archiveStart);
+  const end = Number(element.dataset.archiveEnd);
+  window.scrollTo(0, start + (end - start) * 0.902);
 });
 await mobilePage.waitForTimeout(700);
 await mobilePage.screenshot({
   path: "implementation-mobile-internship.png",
 });
 const mobileArchiveRevealed = await mobilePage
-  .locator(".internship-reveal")
-  .evaluate((element) => element.classList.contains("is-visible"));
+  .locator(".project-archive-reveal")
+  .evaluate((element) => element.classList.contains("is-active"));
 await mobilePage.locator("#profile").screenshot({
   path: "implementation-mobile-profile.png",
 });
@@ -233,8 +234,8 @@ const reducedTravelAfter = Number(
 await reducedPage.locator(".reduced-archive button").click();
 await reducedPage.waitForTimeout(260);
 const reducedRevealVisible = await reducedPage
-  .locator(".internship-reveal")
-  .evaluate((element) => element.classList.contains("is-visible"));
+  .locator(".project-archive-reveal")
+  .evaluate((element) => element.classList.contains("is-active"));
 
 const interactionPage = await browser.newPage({
   viewport: { width: 1440, height: 1024 },

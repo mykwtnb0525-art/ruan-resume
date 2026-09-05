@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { ARCHIVE_VISUAL_BASELINE } from "../visual/visualBaseline.js";
 
 const CAPSULE_STYLES = [
   [0xd6c6b2, 0x9b5762],
@@ -10,15 +11,21 @@ const CAPSULE_STYLES = [
 ];
 
 function capsuleMaterial(color, transparent = false) {
-  return new THREE.MeshStandardMaterial({
+  const material = new THREE.MeshPhysicalMaterial({
     color,
-    roughness: transparent ? 0.18 : 0.24,
-    metalness: transparent ? 0.04 : 0.08,
-    transparent: true,
-    opacity: transparent ? 0.72 : 0.86,
-    envMapIntensity: transparent ? 0.96 : 0.86,
+    roughness: transparent ? 0.13 : 0.18,
+    metalness: transparent ? 0.02 : 0.05,
+    transparent: false,
+    opacity: 1,
+    transmission: transparent ? 0.2 : 0.1,
+    thickness: 0.06,
+    ior: 1.42,
+    envMapIntensity: transparent ? 0.96 : 0.9,
     depthWrite: true,
+    depthTest: true,
   });
+  material.userData.archiveCapsuleMaterial = true;
+  return material;
 }
 
 export function createCapsuleInstances(count = 32) {
@@ -104,6 +111,8 @@ export function createCapsuleInstances(count = 32) {
     [top, bottom, seam].forEach((mesh) => {
       mesh.instanceMatrix.needsUpdate = true;
       mesh.castShadow = true;
+      mesh.renderOrder =
+        ARCHIVE_VISUAL_BASELINE.chamberCapsules.middle.renderOrder;
       group.add(mesh);
       capsuleMeshes.push(mesh);
     });

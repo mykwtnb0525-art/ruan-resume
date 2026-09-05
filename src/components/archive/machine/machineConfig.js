@@ -27,56 +27,65 @@ export const MACHINE_PALETTE = {
 };
 
 export function createMachineMaterials(THREE) {
+  const presets = ARCHIVE_VISUAL_BASELINE.materials;
   const ivory = new THREE.MeshStandardMaterial({
-    color: MACHINE_PALETTE.ivory,
-    roughness: 0.56,
-    metalness: 0.38,
+    color: presets.MachineIvory.color,
+    roughness: presets.MachineIvory.roughness,
+    metalness: presets.MachineIvory.metalness,
+    envMapIntensity: presets.MachineIvory.envMapIntensity,
     emissive: 0x160b08,
     emissiveIntensity: 0.035,
   });
   ivory.name = "MachineIvory";
   const ivoryDark = new THREE.MeshStandardMaterial({
-    color: MACHINE_PALETTE.ivoryDark,
-    roughness: 0.66,
-    metalness: 0.3,
+    color: presets.MachineIvoryDark.color,
+    roughness: presets.MachineIvoryDark.roughness,
+    metalness: presets.MachineIvoryDark.metalness,
+    envMapIntensity: presets.MachineIvoryDark.envMapIntensity,
   });
   ivoryDark.name = "MachineIvoryDark";
   const green = new THREE.MeshStandardMaterial({
-    color: MACHINE_PALETTE.green,
-    roughness: 0.48,
-    metalness: 0.46,
+    color: presets.MachineGreen.color,
+    roughness: presets.MachineGreen.roughness,
+    metalness: presets.MachineGreen.metalness,
+    envMapIntensity: presets.MachineGreen.envMapIntensity,
   });
   green.name = "MachineGreen";
   const greenDark = new THREE.MeshStandardMaterial({
-    color: MACHINE_PALETTE.greenDark,
-    roughness: 0.68,
-    metalness: 0.28,
+    color: presets.MachineGreenDark.color,
+    roughness: presets.MachineGreenDark.roughness,
+    metalness: presets.MachineGreenDark.metalness,
+    envMapIntensity: presets.MachineGreenDark.envMapIntensity,
   });
   greenDark.name = "MachineGreenDark";
   const wine = new THREE.MeshStandardMaterial({
-    color: MACHINE_PALETTE.wine,
-    roughness: 0.52,
-    metalness: 0.24,
+    color: presets.MachineWine.color,
+    roughness: presets.MachineWine.roughness,
+    metalness: presets.MachineWine.metalness,
+    envMapIntensity: presets.MachineWine.envMapIntensity,
     emissive: 0x3a080e,
     emissiveIntensity: 0.05,
   });
   wine.name = "MachineWine";
   const metal = new THREE.MeshStandardMaterial({
-    color: MACHINE_PALETTE.metal,
-    roughness: 0.3,
-    metalness: 0.86,
+    color: presets.MachineDarkMetal.color,
+    roughness: presets.MachineDarkMetal.roughness,
+    metalness: presets.MachineDarkMetal.metalness,
+    envMapIntensity: presets.MachineDarkMetal.envMapIntensity,
   });
   metal.name = "MachineDarkMetal";
   const steel = new THREE.MeshStandardMaterial({
-    color: MACHINE_PALETTE.steel,
-    roughness: 0.27,
-    metalness: 0.9,
+    color: presets.MachineSteel.color,
+    roughness: presets.MachineSteel.roughness,
+    metalness: presets.MachineSteel.metalness,
+    envMapIntensity: presets.MachineSteel.envMapIntensity,
   });
   steel.name = "MachineSteel";
   const brass = new THREE.MeshStandardMaterial({
-    color: MACHINE_PALETTE.brass,
-    roughness: 0.36,
-    metalness: 0.78,
+    color: presets.MachineBrass.color,
+    roughness: presets.MachineBrass.roughness,
+    metalness: presets.MachineBrass.metalness,
+    envMapIntensity: presets.MachineBrass.envMapIntensity,
   });
   brass.name = "MachineBrass";
   const rubber = new THREE.MeshStandardMaterial({
@@ -86,19 +95,22 @@ export function createMachineMaterials(THREE) {
   });
   rubber.name = "MachineRubber";
   const glass = new THREE.MeshPhysicalMaterial({
-    color: 0xb8c7c0,
-    roughness: 0.1,
+    color: presets.MachineSmokedGlass.color,
+    roughness: presets.MachineSmokedGlass.roughness,
     metalness: 0,
     transparent: true,
     opacity: 1,
-    transmission: 0.88,
-    thickness: 0.18,
-    ior: 1.47,
-    attenuationColor: new THREE.Color(0xd2b8aa),
-    attenuationDistance: 2.8,
-    envMapIntensity: 1.05,
+    transmission: presets.MachineSmokedGlass.transmission,
+    thickness: presets.MachineSmokedGlass.thickness,
+    ior: presets.MachineSmokedGlass.ior,
+    attenuationColor: new THREE.Color(
+      presets.MachineSmokedGlass.attenuationColor,
+    ),
+    attenuationDistance: presets.MachineSmokedGlass.attenuationDistance,
+    envMapIntensity: presets.MachineSmokedGlass.envMapIntensity,
     depthWrite: false,
-    side: THREE.DoubleSide,
+    depthTest: true,
+    side: THREE.FrontSide,
   });
   glass.name = "MachineSmokedGlass";
 
@@ -115,3 +127,4 @@ export function createMachineMaterials(THREE) {
     glass,
   };
 }
+import { ARCHIVE_VISUAL_BASELINE } from "../visual/visualBaseline.js";

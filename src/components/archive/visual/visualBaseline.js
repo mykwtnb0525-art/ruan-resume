@@ -1,0 +1,135 @@
+export const ARCHIVE_VISUAL_BASELINE = Object.freeze({
+  renderer: {
+    exposure: 1.07,
+    modelExposure: 1.08,
+    maxDpr: 1.5,
+  },
+  environment: {
+    intensity: 0.66,
+    fogColor: 0x49342e,
+  },
+  lighting: {
+    ambient: {
+      color: 0xc9b4a2,
+      intensity: 0.3,
+    },
+    hemisphere: {
+      skyColor: 0xddc2aa,
+      groundColor: 0x49382f,
+      intensity: 0.44,
+    },
+    key: {
+      color: 0xffd0aa,
+      intensity: 1.72,
+      position: [-3.2, 5.4, 4.8],
+    },
+    fill: {
+      color: 0xa9bab5,
+      intensity: 0.42,
+      position: [3.8, 2.6, 3.5],
+    },
+    rim: {
+      color: 0x8d6d91,
+      intensity: 0.54,
+      position: [0.8, 4.3, -3.4],
+      target: [0, 1.6, 0],
+      distance: 10,
+      angle: 0.62,
+      penumbra: 0.85,
+      decay: 1.25,
+    },
+  },
+  ground: {
+    shadowColor: 0x17110f,
+    shadowOpacity: 0.23,
+    contactOpacity: 0.27,
+    contactSize: [4.8, 3.6],
+  },
+  materials: {
+    MachineIvory: {
+      color: 0xbda990,
+      envMapIntensity: 0.72,
+      roughness: 0.57,
+      metalness: 0.08,
+    },
+    MachineIvoryDark: {
+      color: 0x94816f,
+      envMapIntensity: 0.62,
+      roughness: 0.63,
+      metalness: 0.08,
+    },
+    MachineGreen: {
+      color: 0x465f54,
+      envMapIntensity: 0.79,
+      roughness: 0.46,
+      metalness: 0.16,
+    },
+    MachineGreenDark: {
+      color: 0x2d433b,
+      envMapIntensity: 0.7,
+      roughness: 0.56,
+      metalness: 0.18,
+    },
+    MachineWine: {
+      color: 0x6e3e43,
+      envMapIntensity: 0.76,
+      roughness: 0.5,
+      metalness: 0.2,
+    },
+    MachineBrass: {
+      color: 0x95704a,
+      envMapIntensity: 1.05,
+      roughness: 0.28,
+      metalness: 0.88,
+    },
+    MachineSteel: {
+      color: 0x655f59,
+      envMapIntensity: 0.86,
+      roughness: 0.36,
+      metalness: 0.78,
+    },
+    MachineDarkMetal: {
+      color: 0x2d2926,
+      envMapIntensity: 0.78,
+      roughness: 0.41,
+      metalness: 0.7,
+    },
+    MachineSmokedGlass: {
+      color: 0xb4c5bf,
+      envMapIntensity: 0.58,
+      roughness: 0.14,
+      metalness: 0,
+      transmission: 0.96,
+      ior: 1.46,
+      thickness: 0.07,
+      attenuationColor: 0xb9c7c0,
+      attenuationDistance: 12,
+      renderOrder: 12,
+    },
+  },
+  chamberCapsules: {
+    front: {
+      opacity: 1,
+      roughness: 0.13,
+      envMapIntensity: 0.94,
+      renderOrder: 8,
+    },
+    middle: {
+      opacity: 1,
+      roughness: 0.17,
+      envMapIntensity: 0.86,
+      renderOrder: 7,
+    },
+    back: {
+      opacity: 1,
+      roughness: 0.21,
+      envMapIntensity: 0.78,
+      renderOrder: 6,
+    },
+  },
+  effects: {
+    grainOpacity: 0.024,
+    scanlineBaseOpacity: 0.018,
+    vignetteEdgeOpacity: 0.085,
+  },
+});

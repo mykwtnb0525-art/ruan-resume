@@ -21,7 +21,9 @@ import { ArchiveHud } from "./ArchiveHud.jsx";
 import { chapter01 } from "./config/chapter01.ts";
 import { getEnvironmentRenderConfig } from "./rigs/EnvironmentRig.js";
 import { ReducedMotionArchive } from "./ReducedMotionArchive.jsx";
+import { SceneEffects } from "./SceneEffects.jsx";
 import { TransitionResidue } from "./TransitionResidue.jsx";
+import { resolveVisualDebugMode } from "./visual/visualDebugMode.js";
 import "./archive-sequence.css";
 
 const LazyArchiveDebugPanel = import.meta.env.DEV
@@ -58,7 +60,7 @@ export function ArchiveSequence({ embedded = false }) {
     compact,
   );
   const requestedLightingPass =
-    typeof window === "undefined"
+    !import.meta.env.DEV || typeof window === "undefined"
       ? "final"
       : new URLSearchParams(window.location.search).get("lightingPass");
   const lightingPass = [
@@ -70,23 +72,7 @@ export function ArchiveSequence({ embedded = false }) {
   ].includes(requestedLightingPass)
     ? requestedLightingPass
     : "final";
-  const requestedVisualMode =
-    typeof window === "undefined"
-      ? "final"
-      : new URLSearchParams(window.location.search).get("visualMode");
-  const visualMode = [
-    "model-front",
-    "model-three-quarter",
-    "material",
-    "glass",
-    "lighting",
-    "background-base",
-    "background-collage",
-    "integrated",
-    "final",
-  ].includes(requestedVisualMode)
-    ? requestedVisualMode
-    : "final";
+  const visualDebugMode = resolveVisualDebugMode();
   const showNarrativeDebug =
     import.meta.env.DEV &&
     typeof window !== "undefined" &&
@@ -207,7 +193,7 @@ export function ArchiveSequence({ embedded = false }) {
       data-phase={phase}
       data-chapter={chapterConfig.id}
       data-lighting-pass={lightingPass}
-      data-visual-mode={visualMode}
+      data-visual-debug-mode={visualDebugMode}
       aria-labelledby="archive-sequence-title"
       style={environmentConfig.cssVariables}
     >
@@ -217,7 +203,7 @@ export function ArchiveSequence({ embedded = false }) {
           staticMode={staticMode}
           compact={compact}
           lightingPass={lightingPass}
-          visualMode={visualMode}
+          visualDebugMode={visualDebugMode}
           chapterConfig={chapterConfig}
         />
         <div
@@ -274,15 +260,7 @@ export function ArchiveSequence({ embedded = false }) {
           </span>
         </div>
 
-        <div className="archive-sequence__paper" aria-hidden="true" />
-        <div className="archive-sequence__color-wash" aria-hidden="true" />
-        <div className="archive-sequence__air" aria-hidden="true" />
-        <div className="archive-sequence__grain" aria-hidden="true" />
-        <div className="archive-sequence__scanlines" aria-hidden="true" />
-        <div
-          className="archive-sequence__environment-vignette"
-          aria-hidden="true"
-        />
+        <SceneEffects />
 
         <ArchiveHud
           phase={phase}

@@ -23,7 +23,7 @@ export function createCapsuleChamber(materials, capsuleCount) {
   chamber.position.y = 3.12;
   chamber.scale.z = 0.84;
   chamber.name = "CapsuleChamber_SmokedGlass";
-  chamber.renderOrder = 4;
+  chamber.renderOrder = 12;
 
   const back = new THREE.Mesh(
     createRoundedBoxGeometry(1.48, 1.72, 0.08, 0.22),

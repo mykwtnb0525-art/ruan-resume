@@ -33,7 +33,12 @@ export function applyLightingRig({
     machine.materials.wine.emissiveIntensity = values.get("wine");
   }
   if (values.has("glassTransmission")) {
-    machine.materials.glass.transmission = values.get("glassTransmission");
+    const chapterTransmission = values.get("glassTransmission");
+    machine.materials.glass.transmission = Math.min(
+      0.98,
+      ARCHIVE_VISUAL_BASELINE.materials.MachineSmokedGlass.transmission +
+        Math.max(0, chapterTransmission - 0.85) * 0.5,
+    );
   }
   if (values.has("baseStatus")) {
     machine.materials.baseStatus.emissiveIntensity = values.get("baseStatus");
@@ -59,3 +64,4 @@ export function applyLightingRig({
     ? values.get("trayPoint") || 0
     : 0;
 }
+import { ARCHIVE_VISUAL_BASELINE } from "../visual/visualBaseline.js";

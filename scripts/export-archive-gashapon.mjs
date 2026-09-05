@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import * as THREE from "three";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import { createGashaponMachine } from "../src/components/archive/GashaponMachine.js";
+import { chapter01 } from "../src/components/archive/config/chapter01.ts";
 
 class NodeFileReader {
   constructor() {
@@ -50,7 +51,7 @@ const machine = createGashaponMachine({
     position: [0, 0, 0],
     capsuleCount: 32,
   },
-});
+}, chapter01);
 
 machine.group.position.set(0, 0, 0);
 machine.group.rotation.set(0, 0, 0);

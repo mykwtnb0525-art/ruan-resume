@@ -17,6 +17,8 @@ import { getEnvironmentRenderConfig } from "./rigs/EnvironmentRig.js";
 import { applyLightingRig } from "./rigs/LightingRig.js";
 import { applyMachineRig, easeInOut } from "./rigs/MachineRig.js";
 import { disposeObject } from "./threeUtils.js";
+import { ARCHIVE_VISUAL_BASELINE } from "./visual/visualBaseline.js";
+import { VISUAL_DEBUG_MODES } from "./visual/visualDebugMode.js";
 
 const lerp = (start, end, progress) => start + (end - start) * progress;
 
@@ -78,7 +80,7 @@ export function ArchiveCanvas({
   staticMode = false,
   compact = false,
   lightingPass = "final",
-  visualMode = "final",
+  visualDebugMode = VISUAL_DEBUG_MODES.FINAL,
   chapterConfig,
 }) {
   const canvasRef = useRef(null);
@@ -87,8 +89,11 @@ export function ArchiveCanvas({
     if (!canvas) return undefined;
     const section = canvas.closest(".archive-sequence");
     const qaMode = new URLSearchParams(window.location.search).has("qa");
-    const modelDebugMode = visualMode.startsWith("model-");
-    const backgroundOnlyMode = visualMode.startsWith("background-");
+    const modelDebugMode = visualDebugMode === VISUAL_DEBUG_MODES.MODEL;
+    const materialDebugMode =
+      visualDebugMode === VISUAL_DEBUG_MODES.MATERIAL;
+    const finalMode = visualDebugMode === VISUAL_DEBUG_MODES.FINAL;
+    const visualBaseline = ARCHIVE_VISUAL_BASELINE;
 
     let renderer;
     try {
@@ -101,10 +106,15 @@ export function ArchiveCanvas({
       canvas.dataset.webgl = "ready";
       canvas.dataset.modelUrl = ARCHIVE_CONFIG.assets.model;
       canvas.dataset.modelStatus = "loading";
-    } catch {
+    } catch (error) {
       canvas.dataset.webgl = "fallback";
       canvas.dataset.model = "atmosphere-only";
       canvas.dataset.modelStatus = "webgl-unavailable";
+      canvas.dataset.webglError =
+        error instanceof Error ? error.message : String(error);
+      if (import.meta.env.DEV) {
+        console.error("Archive WebGL initialization failed", error);
+      }
       canvas.dataset.modelUrl = ARCHIVE_CONFIG.assets.model;
       let fallbackFrame = 0;
       const updateFallback = () => {
@@ -152,11 +162,18 @@ export function ArchiveCanvas({
       return () => window.cancelAnimationFrame(fallbackFrame);
     }
     renderer.setPixelRatio(
-      qaMode ? 1 : Math.min(window.devicePixelRatio || 1, 1.5),
+      qaMode
+        ? 1
+        : Math.min(
+            window.devicePixelRatio || 1,
+            visualBaseline.renderer.maxDpr,
+          ),
     );
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = modelDebugMode ? 1.08 : 1.04;
+    renderer.toneMappingExposure = modelDebugMode
+      ? visualBaseline.renderer.modelExposure
+      : visualBaseline.renderer.exposure;
     renderer.shadowMap.enabled = !compact;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -165,15 +182,19 @@ export function ArchiveCanvas({
       chapterConfig,
       compact,
     );
-    const hasEnvironment = lightingPass !== "base";
-    const hasGround = ["ground", "atmosphere", "final"].includes(lightingPass);
-    const hasAtmosphere = ["atmosphere", "final"].includes(lightingPass);
+    const hasEnvironment = !modelDebugMode && lightingPass !== "base";
+    const hasGround =
+      modelDebugMode ||
+      materialDebugMode ||
+      ["ground", "atmosphere", "final"].includes(lightingPass);
+    const hasAtmosphere =
+      finalMode && ["atmosphere", "final"].includes(lightingPass);
     scene.environmentIntensity = hasEnvironment
       ? environmentConfig.environmentIntensity
       : 0;
     if (hasAtmosphere) {
       scene.fog = new THREE.Fog(
-        0x49342e,
+        visualBaseline.environment.fogColor,
         environmentConfig.fogNear,
         environmentConfig.fogFar,
       );
@@ -200,11 +221,11 @@ export function ArchiveCanvas({
 
     const tunnel = createArchiveTunnel({ compact });
     world.add(tunnel.group);
-    tunnel.group.visible = !backgroundOnlyMode;
+    tunnel.group.visible = finalMode;
 
     let machine = createGashaponMachine(ARCHIVE_CONFIG, chapterConfig);
     world.add(machine.group);
-    machine.group.visible = !backgroundOnlyMode;
+    machine.group.visible = true;
     canvas.dataset.model = "procedural-loading";
     let disposed = false;
     if (ARCHIVE_CONFIG.machine.modelMode === "gltf") {
@@ -225,7 +246,7 @@ export function ArchiveCanvas({
           disposeObject(machine.group);
           machine = loadedMachine;
           world.add(machine.group);
-          machine.group.visible = !backgroundOnlyMode;
+          machine.group.visible = true;
           if (modelDebugMode) {
             const clay = new THREE.MeshStandardMaterial({
               color: 0xaaa29a,
@@ -256,8 +277,8 @@ export function ArchiveCanvas({
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(80, 80),
       new THREE.ShadowMaterial({
-        color: 0x17110f,
-        opacity: 0.24,
+        color: visualBaseline.ground.shadowColor,
+        opacity: visualBaseline.ground.shadowOpacity,
         transparent: true,
         depthWrite: false,
       }),
@@ -269,12 +290,12 @@ export function ArchiveCanvas({
     world.add(ground);
 
     const contactShadow = new THREE.Mesh(
-      new THREE.PlaneGeometry(4.8, 3.6),
+      new THREE.PlaneGeometry(...visualBaseline.ground.contactSize),
       new THREE.MeshBasicMaterial({
-        color: 0x17110f,
+        color: visualBaseline.ground.shadowColor,
         map: createContactShadowTexture(),
         transparent: true,
-        opacity: 0.28,
+        opacity: visualBaseline.ground.contactOpacity,
         depthWrite: false,
         toneMapped: false,
       }),
@@ -294,10 +315,21 @@ export function ArchiveCanvas({
     sceneConnectors.visible = hasGround;
     world.add(sceneConnectors);
 
-    const ambient = new THREE.AmbientLight(0xc9b4a2, 0.26);
-    const hemisphere = new THREE.HemisphereLight(0xddc2aa, 0x49382f, 0.4);
-    const key = new THREE.DirectionalLight(0xffd0aa, 1.68);
-    key.position.set(-3.2, 5.4, 4.8);
+    const light = visualBaseline.lighting;
+    const ambient = new THREE.AmbientLight(
+      light.ambient.color,
+      light.ambient.intensity,
+    );
+    const hemisphere = new THREE.HemisphereLight(
+      light.hemisphere.skyColor,
+      light.hemisphere.groundColor,
+      light.hemisphere.intensity,
+    );
+    const key = new THREE.DirectionalLight(
+      light.key.color,
+      light.key.intensity,
+    );
+    key.position.fromArray(light.key.position);
     key.castShadow = !compact;
     const shadowMapSize = qaMode ? 1024 : compact ? 1024 : 2048;
     key.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -309,12 +341,22 @@ export function ArchiveCanvas({
     key.shadow.camera.bottom = -3;
     key.shadow.bias = -0.00025;
     key.shadow.normalBias = 0.025;
-    const fill = new THREE.DirectionalLight(0xa9bab5, 0.44);
-    fill.position.set(3.8, 2.6, 3.5);
-    const rim = new THREE.SpotLight(0x8d6d91, 0.58, 10, 0.62, 0.85, 1.25);
-    rim.position.set(0.8, 4.3, -3.4);
+    const fill = new THREE.DirectionalLight(
+      light.fill.color,
+      light.fill.intensity,
+    );
+    fill.position.fromArray(light.fill.position);
+    const rim = new THREE.SpotLight(
+      light.rim.color,
+      light.rim.intensity,
+      light.rim.distance,
+      light.rim.angle,
+      light.rim.penumbra,
+      light.rim.decay,
+    );
+    rim.position.fromArray(light.rim.position);
     const rimTarget = new THREE.Object3D();
-    rimTarget.position.set(0, 1.6, 0);
+    rimTarget.position.fromArray(light.rim.target);
     rim.target = rimTarget;
     scene.add(
       ambient,
@@ -426,15 +468,9 @@ export function ArchiveCanvas({
         lerp(target.z, 0.42, easeInOut(trayFocus)),
       );
       camera.lookAt(cameraTarget);
-      if (visualMode === "model-front") {
-        camera.position.set(0, -0.08, 9.2);
-        camera.lookAt(0, -0.25, 0);
-      } else if (visualMode === "model-three-quarter") {
+      if (modelDebugMode || materialDebugMode) {
         camera.position.set(3.25, -0.02, 8.4);
         camera.lookAt(0, -0.25, 0);
-      } else if (visualMode === "glass") {
-        camera.position.set(2, 0.52, 4.8);
-        camera.lookAt(0, 0.4, 0);
       }
 
       tunnel.setProgress({ collage, travel, arrival });
@@ -444,7 +480,8 @@ export function ArchiveCanvas({
         machine,
         chapter,
         config: chapterConfig,
-        lightingEnabled: lightingPass !== "base",
+        lightingEnabled:
+          !modelDebugMode && lightingPass !== "base",
       });
       applyMachineRig({
         machine,
@@ -508,7 +545,7 @@ export function ArchiveCanvas({
       disposeObject(world);
       environmentTarget?.dispose();
       renderer.dispose();
-      renderer.forceContextLoss();
+      if (!import.meta.env.DEV) renderer.forceContextLoss();
     };
   }, [
     chapterConfig,
@@ -516,7 +553,7 @@ export function ArchiveCanvas({
     lightingPass,
     snapshotRef,
     staticMode,
-    visualMode,
+    visualDebugMode,
   ]);
 
   return (

@@ -63,6 +63,23 @@
 5. Responsive pass: [P2] rich desktop decoration could have crowded the mobile narrative.
    - Fix: hide the fixed rail, floating section marks, portrait tags and focus sensor below 780 px while preserving the capability icons and ticket interactions.
    - Evidence: `implementation-mobile-profile.png`, `implementation-mobile-capabilities.png` and `implementation-mobile-contact.png`; no horizontal overflow.
+6. Chapter Crosshair pass:
+   - Request: make the perspective-grid chapter use the React Bits Crosshair interaction with a more visible acid center target.
+   - Fix: added a section-scoped inertial crosshair with violet orbit, cyan calibration ticks, red center point, noise displacement and interactive lock state.
+   - Post-fix evidence: `implementation-chapter-gridscan.png` and `implementation-chapter-crosshair-lock.png`.
+   - Result: the crosshair follows the pointer, locks on CONTINUE, hides the global cursor inside the chapter and is disabled for coarse/mobile pointers.
+
+7. Chapter tunnel travel pass:
+   - Request: make the perspective chapter feel like travelling forward into the archive instead of viewing a static grid.
+   - Fix: moved the shader camera continuously along the tunnel depth axis, added wheel and pointer-hold acceleration, and added a restrained ScrollTrigger push-in on the WebGL layer.
+   - Runtime evidence: travel advanced from `0.144` to `0.288`; accelerated speed reached `1.087`; the active travelling state was reported.
+   - Result: grid marks now stream from the vanishing point toward the viewer while the copy, acid crosshair, paper texture and toy-car collage remain legible in the foreground.
+
+8. Archive machine sequence pass:
+   - Request: turn the Hero-to-internship transition into one continuous pinned shot with a distant 3D machine, boot sequence, capsule drop and internship unlock.
+   - Fix: replaced the isolated chapter animation with one normalized ScrollTrigger, a programmatic Three.js tunnel and gashapon machine, six HUD phases, capsule path/opening, and three layered internship archive cards using real DOM text.
+   - Runtime evidence: IDLE camera Z `18`; TRAVEL `10.433`; TARGET_LOCK `6.247`; BOOT machine progress `0.6`; DISPENSING capsule progress `0.584`; UNSEALED capsule progress `1`.
+   - Result: all six phases resolve in order, the final archive links naturally into Profile, and a CSS machine/tunnel fallback preserves the story if WebGL is unavailable.
 
 ## Primary Interactions Tested
 
@@ -71,6 +88,10 @@
 - Capability hover rotates/scales the icon and fills the status line.
 - Contact ticket hover translates and rotates the ticket.
 - Pointer-down creates one memory ripple.
+- Chapter Crosshair reports visible follow state, non-zero reticle translation and locked CTA state; the global cursor is hidden while active.
+- Chapter tunnel reports increasing depth travel and an accelerated travelling state after wheel/pointer input.
+- Archive sequence reports IDLE, TRAVEL, TARGET_LOCK, BOOTING, DISPENSING and UNSEALED in order with decreasing camera distance.
+- Mobile Crosshair computed display is `none`.
 - Project detail modal opens with `大禹之解封食铁兽` and closes successfully.
 - WORK, PROFILE and CONTACT anchors work.
 - Email resolves to `mailto:wulai_0708@qq.com`.

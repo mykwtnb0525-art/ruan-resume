@@ -188,11 +188,11 @@
   background-size: cover;
   background-position: center;
   filter:
-    blur(0.55px)
+    blur(0.72px)
     sepia(0.07)
-    saturate(0.9)
-    brightness(0.98)
-    contrast(0.94);
+    saturate(0.86)
+    brightness(0.99)
+    contrast(0.92);
   mix-blend-mode: normal;
   transform:
     scale(calc(1.015 + var(--travel-progress) * 0.1))
@@ -236,6 +236,12 @@
 .archive-sequence__portal-depth {
   background:
     radial-gradient(
+      ellipse at 50% 53%,
+      rgba(224, 199, 173, 0.18) 0 15%,
+      rgba(166, 128, 119, 0.08) 28%,
+      transparent 43%
+    ),
+    radial-gradient(
       ellipse at 50% 48%,
       rgba(255, 245, 205, 0.34) 0 9%,
       rgba(201, 133, 212, 0.15) 19%,
@@ -249,18 +255,18 @@
     );
   filter: blur(9px);
   mix-blend-mode: screen;
-  opacity: calc(0.42 + var(--travel-progress) * 0.22);
+  opacity: calc(0.44 + var(--travel-progress) * 0.2);
 }
 
 .archive-sequence__collage-field {
   background-position: center;
   background-size: cover;
   filter:
-    blur(0.12px)
-    saturate(0.96)
-    brightness(1.02)
-    contrast(0.96);
-  opacity: calc(0.18 + var(--collage-progress) * 0.18);
+    blur(0.3px)
+    saturate(0.88)
+    brightness(1)
+    contrast(0.92);
+  opacity: calc(0.14 + var(--collage-progress) * 0.15);
   -webkit-mask-image:
     radial-gradient(
       ellipse at 50% 51%,
@@ -371,7 +377,7 @@
 
 .archive-sequence__grain {
   z-index: 12;
-  opacity: 0.028;
+  opacity: 0.024;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.64'/%3E%3C/svg%3E");
   mix-blend-mode: soft-light;
 }
@@ -384,8 +390,62 @@
       ellipse at 50% 49%,
       transparent 0 56%,
       rgba(65, 40, 38, 0.035) 78%,
-      rgba(65, 40, 38, 0.1) 100%
+      rgba(65, 40, 38, 0.085) 100%
     );
+}
+
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-hud,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__entrance,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__arrival-copy,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__machine-hotspot,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__skip,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__progress,
+.archive-sequence[data-visual-debug-mode="MODEL"] .project-archive-reveal,
+.archive-sequence[data-visual-debug-mode="MODEL"] .transition-residue,
+.archive-sequence[data-visual-debug-mode="MODEL"] .reduced-archive,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-hud,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__entrance,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__arrival-copy,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__machine-hotspot,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__skip,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__progress,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .project-archive-reveal,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .transition-residue,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .reduced-archive {
+  display: none;
+}
+
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__atmosphere,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__portal-depth,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__collage-field,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__memory-fragments,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__paper,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__color-wash,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__air,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__grain,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__scanlines,
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__environment-vignette,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__atmosphere,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__portal-depth,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__collage-field,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__memory-fragments,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__paper,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__color-wash,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__air,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__grain,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__scanlines,
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__environment-vignette {
+  display: none;
+}
+
+.archive-sequence[data-visual-debug-mode="MODEL"] .archive-sequence__stage {
+  background: #b7ab9e;
+}
+
+.archive-sequence[data-visual-debug-mode="MATERIAL"] .archive-sequence__stage {
+  background:
+    radial-gradient(circle at 50% 43%, #55443b, transparent 45%),
+    #2b211e;
 }
 
 .archive-sequence[data-lighting-pass="base"] .archive-sequence__atmosphere,
@@ -429,108 +489,6 @@
 .archive-sequence[data-lighting-pass="atmosphere"] .archive-sequence__environment-vignette,
 .archive-sequence[data-lighting-pass="atmosphere"] .archive-hud,
 .archive-sequence[data-lighting-pass="atmosphere"] .archive-sequence__arrival-copy {
-  display: none;
-}
-
-.archive-sequence:not([data-visual-mode="final"]) .archive-hud,
-.archive-sequence:not([data-visual-mode="final"]) .archive-sequence__entrance,
-.archive-sequence:not([data-visual-mode="final"]) .archive-sequence__arrival-copy,
-.archive-sequence:not([data-visual-mode="final"]) .archive-sequence__machine-hotspot,
-.archive-sequence:not([data-visual-mode="final"]) .archive-sequence__skip,
-.archive-sequence:not([data-visual-mode="final"]) .archive-sequence__progress,
-.archive-sequence:not([data-visual-mode="final"]) .project-archive-reveal,
-.archive-sequence:not([data-visual-mode="final"]) .reduced-archive {
-  display: none;
-}
-
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__atmosphere,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__portal-depth,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__collage-field,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__memory-fragments,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__paper,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__color-wash,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__air,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__grain,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__scanlines,
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__environment-vignette,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__atmosphere,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__portal-depth,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__collage-field,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__memory-fragments,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__paper,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__color-wash,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__air,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__grain,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__scanlines,
-.archive-sequence[data-visual-mode="material"] .archive-sequence__environment-vignette,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__atmosphere,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__portal-depth,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__collage-field,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__memory-fragments,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__paper,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__color-wash,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__air,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__grain,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__scanlines,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__environment-vignette,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__atmosphere,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__portal-depth,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__collage-field,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__memory-fragments,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__paper,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__color-wash,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__air,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__grain,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__scanlines,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__environment-vignette {
-  display: none;
-}
-
-.archive-sequence[data-visual-mode^="model"] .archive-sequence__stage {
-  background: #b7ab9e;
-}
-
-.archive-sequence[data-visual-mode="material"] .archive-sequence__stage,
-.archive-sequence[data-visual-mode="glass"] .archive-sequence__stage,
-.archive-sequence[data-visual-mode="lighting"] .archive-sequence__stage {
-  background:
-    radial-gradient(circle at 50% 43%, #55443b, transparent 45%),
-    #2b211e;
-}
-
-.archive-sequence[data-visual-mode^="background"] .archive-canvas-shell {
-  display: none;
-}
-
-.archive-sequence[data-visual-mode="background-base"] .archive-sequence__collage-field,
-.archive-sequence[data-visual-mode="background-base"] .archive-sequence__memory-fragments,
-.archive-sequence[data-visual-mode="background-base"] .archive-sequence__paper,
-.archive-sequence[data-visual-mode="background-base"] .archive-sequence__scanlines,
-.archive-sequence[data-visual-mode="background-base"] .archive-sequence__environment-vignette {
-  display: none;
-}
-
-.archive-sequence[data-visual-mode="background-base"] .archive-sequence__atmosphere {
-  opacity: 0.92;
-  filter:
-    blur(2px)
-    sepia(0.08)
-    saturate(0.74)
-    brightness(1.04)
-    contrast(0.9);
-}
-
-.archive-sequence[data-visual-mode="background-collage"] .archive-sequence__atmosphere {
-  opacity: 0.9;
-}
-
-.archive-sequence[data-visual-mode="background-collage"] .archive-sequence__collage-field {
-  opacity: 0.32;
-}
-
-.archive-sequence[data-visual-mode="integrated"] .archive-sequence__grain,
-.archive-sequence[data-visual-mode="integrated"] .archive-sequence__scanlines,
-.archive-sequence[data-visual-mode="integrated"] .archive-sequence__environment-vignette {
   display: none;
 }
 
@@ -1147,14 +1105,17 @@
   display: flex;
   justify-content: space-between;
   color: rgba(77, 47, 57, 0.76);
-  font: 0.52rem/1 "Courier New", monospace;
+  font: clamp(0.58rem, 0.55vw, 0.7rem) / 1.2 "Courier New", monospace;
   letter-spacing: 0.15em;
   opacity: clamp(0, calc(var(--archive-emerge-progress) * 2.5), 1);
 }
 
 .project-archive-reveal__field {
   position: absolute;
-  inset: 8vh max(3vw, calc((100vw - 1700px) / 2)) 8vh;
+  inset:
+    max(8vh, 72px)
+    max(3.5vw, calc((100vw - 1700px) / 2))
+    max(8vh, 68px);
   perspective: 1400px;
 }
 
@@ -1211,14 +1172,14 @@
 .project-archive-piece--method > span {
   display: block;
   color: #76505f;
-  font: 0.5rem/1.4 "Courier New", monospace;
+  font: clamp(0.58rem, 0.52vw, 0.68rem) / 1.45 "Courier New", monospace;
   letter-spacing: 0.15em;
 }
 
 .project-archive-piece__en {
   margin: clamp(30px, 6vh, 68px) 0 10px;
   color: rgba(57, 73, 69, 0.72);
-  font: 0.56rem/1.4 "Courier New", monospace;
+  font: clamp(0.62rem, 0.58vw, 0.74rem) / 1.45 "Courier New", monospace;
   letter-spacing: 0.12em;
 }
 
@@ -1254,16 +1215,16 @@
 .project-archive-piece__keywords span {
   padding: 7px 9px 6px;
   border: 1px solid rgba(64, 55, 53, 0.32);
-  font: 0.48rem/1 "Courier New", monospace;
+  font: clamp(0.58rem, 0.52vw, 0.68rem) / 1.15 "Courier New", monospace;
   letter-spacing: 0.08em;
 }
 
 .project-archive-piece__description {
-  max-width: 700px;
+  max-width: 48ch;
   margin: 26px 0;
   font-family: Georgia, "Songti SC", serif;
-  font-size: clamp(0.9rem, 1.05vw, 1.12rem);
-  line-height: 1.85;
+  font-size: clamp(1rem, 1.05vw, 1.16rem);
+  line-height: 1.78;
 }
 
 .project-archive-piece--lyric {
@@ -1334,7 +1295,7 @@
   left: 11px;
   bottom: 8px;
   color: rgba(63, 55, 53, 0.72);
-  font: 0.46rem/1 "Courier New", monospace;
+  font: clamp(0.58rem, 0.5vw, 0.66rem) / 1.15 "Courier New", monospace;
   letter-spacing: 0.12em;
 }
 
@@ -1371,8 +1332,8 @@
 
 .project-archive-piece--palette p {
   margin: 0;
-  font-size: 0.76rem;
-  line-height: 1.5;
+  font-size: clamp(0.82rem, 0.74vw, 0.92rem);
+  line-height: 1.55;
 }
 
 .project-archive-piece--method {
@@ -1402,13 +1363,13 @@
   margin: 14px 0 0;
   padding-top: 12px;
   border-top: 1px dashed rgba(62, 61, 55, 0.28);
-  font-size: clamp(0.7rem, 0.8vw, 0.84rem);
-  line-height: 1.55;
+  font-size: clamp(0.82rem, 0.8vw, 0.94rem);
+  line-height: 1.6;
 }
 
 .project-archive-piece--method b {
   color: #557d77;
-  font: 0.5rem/1.5 "Courier New", monospace;
+  font: clamp(0.58rem, 0.52vw, 0.68rem) / 1.5 "Courier New", monospace;
 }
 
 .project-archive-reveal__continue {
@@ -1418,7 +1379,7 @@
   bottom: 3.2vh;
   margin: 0;
   color: rgba(39, 34, 32, 0.78);
-  font: 0.52rem/1 "Courier New", monospace;
+  font: clamp(0.6rem, 0.54vw, 0.7rem) / 1 "Courier New", monospace;
   letter-spacing: 0.13em;
   opacity: clamp(0, calc(var(--archive-read-progress) * 2.4), 1);
   pointer-events: none;
